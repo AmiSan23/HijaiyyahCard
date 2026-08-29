@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>Kartu Hijaiyyah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <main id="landing" class="screen">
+    <div class="brand">
+      <h1>Kartu Hijaiyyah</h1>
+      <p class="subtitle">Main kartu bareng, sambil kenalan sama huruf hijaiyyah</p>
+    </div>
+
+    <div class="card">
+      <label for="inputNama">Nama kamu</label>
+      <input type="text" id="inputNama" placeholder="Misal: Andy" maxlength="16" autocomplete="off" />
+
+      <div class="tabs" role="tablist">
+        <button id="btnTabBuat" class="tab active" role="tab" aria-selected="true">Buat Room</button>
+        <button id="btnTabGabung" class="tab" role="tab" aria-selected="false">Gabung Room</button>
+      </div>
+
+      <div id="panelBuat" class="panel">
+        <button id="btnBuatRoom" class="btn-primary">Buat Room Baru</button>
+      </div>
+
+      <div id="panelGabung" class="panel hidden">
+        <input type="text" id="inputKode" placeholder="Kode room (4 digit)" maxlength="4" inputmode="numeric" autocomplete="off" />
+        <button id="btnGabungRoom" class="btn-primary">Gabung ke Room</button>
+      </div>
+
+      <p id="errorMsg" class="error hidden" role="alert"></p>
+    </div>
+  </main>
+
+  <main id="lobby" class="screen hidden">
+    <p class="lobby-label">Kode Room</p>
+    <div class="kode-besar" id="kodeBesar">----</div>
+    <p class="hint">Kasih tau kode ini ke temen-temen kamu</p>
+
+    <div class="card">
+      <p class="players-label">Pemain di room ini</p>
+      <ul class="player-list" id="playerList"></ul>
+    </div>
+
+    <button id="btnMulai" class="btn-primary hidden">Mulai Main</button>
+    <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
