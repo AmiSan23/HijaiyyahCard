@@ -79,6 +79,7 @@ function selesaikanKarenaDeckHabis(kode) {
     alasan: 'deck-habis',
     pemenang: terbaik ? terbaik.nama : '-',
     skor: terbaik ? terbaik.skor : 0,
+    semuaTangan: room.players.map((p) => ({ nama: p.nama, hand: game.hands[p.id] })),
   });
 }
 
@@ -207,7 +208,7 @@ io.on('connection', (socket) => {
       io.to(kode).emit('permainan-selesai', {
         alasan: 'checkmate',
         pemenang: pemenang ? pemenang.nama : '-',
-        hand: tangan,
+        semuaTangan: room.players.map((p) => ({ nama: p.nama, hand: game.hands[p.id] })),
       });
       return;
     }
@@ -219,6 +220,14 @@ io.on('connection', (socket) => {
 
     game.turnIndex = (game.turnIndex + 1) % game.turnOrder.length;
     kirimGameState(kode);
+  });
+
+  socket.on('kembali-ke-lobi', () => {
+    const kode = socket.data.kode;
+    const room = rooms[kode];
+    if (!room) return;
+    room.game = null;
+    io.to(kode).emit('lobi-lagi', ringkasanRoom(kode));
   });
 
   socket.on('disconnect', () => {

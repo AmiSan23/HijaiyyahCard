@@ -59,31 +59,36 @@
       <p id="sisaDeckInfo" class="hint">Sisa kartu di deck: -</p>
     </div>
 
-    <div class="piles">
-      <div class="pile">
-        <img id="drawPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan tertutup" />
-        <span class="pile-label">Ambil (tertutup)</span>
-      </div>
-      <div class="pile">
-        <img id="discardPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan buang" />
-        <span class="pile-label">Ambil (buang)</span>
-      </div>
-    </div>
+    <div class="meja-grid">
+      <div class="seat seat-atas hidden" id="seatAtas"></div>
+      <div class="seat seat-kiri hidden" id="seatKiri"></div>
 
-    <div class="players-bar" id="playersBar"></div>
+      <div class="pusat">
+        <div class="pile">
+          <img id="drawPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan tertutup" />
+          <span class="ambil-badge" id="ambilDeckBadge">Ambil</span>
+        </div>
+        <div class="pile">
+          <img id="discardPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan buang" />
+          <span class="ambil-badge" id="ambilBuangBadge">Ambil</span>
+        </div>
+      </div>
+
+      <div class="seat seat-kanan hidden" id="seatKanan"></div>
+    </div>
 
     <div class="my-hand-wrap">
-      <p class="players-label">Tangan kamu</p>
+      <p class="players-label" id="myNameLabel">Tangan kamu</p>
       <div class="my-hand" id="myHand"></div>
+      <p id="aksiHint" class="hint"></p>
     </div>
-
-    <p id="aksiHint" class="hint"></p>
   </main>
 
   <div id="hasilOverlay" class="overlay hidden">
     <div class="overlay-card">
       <h2 id="hasilJudul">Permainan Selesai</h2>
       <p id="hasilDetail"></p>
+      <div class="reveal-area" id="revealArea"></div>
       <button id="btnKembaliLobby" class="btn-primary">Main Lagi</button>
     </div>
   </div>
