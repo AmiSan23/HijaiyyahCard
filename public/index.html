@@ -53,6 +53,41 @@
     <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
   </main>
 
+  <main id="meja" class="screen hidden">
+    <div class="table-info">
+      <p id="giliranInfo" class="turn-info">Giliran: -</p>
+      <p id="sisaDeckInfo" class="hint">Sisa kartu di deck: -</p>
+    </div>
+
+    <div class="piles">
+      <div class="pile">
+        <img id="drawPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan tertutup" />
+        <span class="pile-label">Ambil (tertutup)</span>
+      </div>
+      <div class="pile">
+        <img id="discardPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan buang" />
+        <span class="pile-label">Ambil (buang)</span>
+      </div>
+    </div>
+
+    <div class="players-bar" id="playersBar"></div>
+
+    <div class="my-hand-wrap">
+      <p class="players-label">Tangan kamu</p>
+      <div class="my-hand" id="myHand"></div>
+    </div>
+
+    <p id="aksiHint" class="hint"></p>
+  </main>
+
+  <div id="hasilOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h2 id="hasilJudul">Permainan Selesai</h2>
+      <p id="hasilDetail"></p>
+      <button id="btnKembaliLobby" class="btn-primary">Main Lagi</button>
+    </div>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="/client.js"></script>
 </body>
