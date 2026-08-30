@@ -8,6 +8,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException] Server tetap jalan, tapi ada error:', err);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection] Server tetap jalan, tapi ada error:', err);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Semua room aktif disimpan di memori server.
@@ -52,7 +59,10 @@ function kirimGameState(kode) {
 
   room.players.forEach((p) => {
     const s = io.sockets.sockets.get(p.id);
-    if (!s) return;
+    if (!s) {
+      console.log(`[kirimGameState] socket ${p.id} (${p.nama}) TIDAK ketemu - kemungkinan udah disconnect`);
+      return;
+    }
     s.emit('game-state', {
       ...tabelUmum,
       tanganSaya: game.hands[p.id] || [],
@@ -84,6 +94,8 @@ function selesaikanKarenaDeckHabis(kode) {
 }
 
 io.on('connection', (socket) => {
+  console.log(`[konek] socket ${socket.id} terhubung`);
+
   socket.on('buat-room', (nama) => {
     const namaBersih = (nama || 'Pemain').toString().trim().slice(0, 16) || 'Pemain';
     const kode = buatKodeRoom();
@@ -98,22 +110,27 @@ io.on('connection', (socket) => {
     socket.data.kode = kode;
 
     socket.emit('room-dibuat', ringkasanRoom(kode));
+    console.log(`[buat-room] ${namaBersih} bikin room ${kode}`);
   });
 
   socket.on('gabung-room', ({ kode, nama }) => {
     const kodeBersih = (kode || '').toString().trim();
     const namaBersih = (nama || 'Pemain').toString().trim().slice(0, 16) || 'Pemain';
     const room = rooms[kodeBersih];
+    console.log(`[gabung-room] ${namaBersih} coba gabung ke room ${kodeBersih}`);
 
     if (!room) {
+      console.log(`[gabung-room] GAGAL: room ${kodeBersih} tidak ditemukan`);
       socket.emit('gagal-gabung', 'Kode room nggak ditemukan. Coba cek lagi kodenya.');
       return;
     }
     if (room.game) {
+      console.log(`[gabung-room] GAGAL: room ${kodeBersih} udah mulai main`);
       socket.emit('gagal-gabung', 'Room ini udah mulai main, nggak bisa gabung di tengah jalan.');
       return;
     }
     if (room.players.length >= MAKS_PEMAIN) {
+      console.log(`[gabung-room] GAGAL: room ${kodeBersih} udah penuh`);
       socket.emit('gagal-gabung', `Room udah penuh (maks ${MAKS_PEMAIN} pemain).`);
       return;
     }
@@ -124,35 +141,50 @@ io.on('connection', (socket) => {
 
     socket.emit('berhasil-gabung', ringkasanRoom(kodeBersih));
     socket.to(kodeBersih).emit('update-pemain', ringkasanRoom(kodeBersih));
+    console.log(`[gabung-room] BERHASIL: ${namaBersih} join room ${kodeBersih}, total pemain: ${room.players.length}`);
   });
 
   socket.on('mulai-main', () => {
     const kode = socket.data.kode;
+    console.log(`[mulai-main] diterima dari socket ${socket.id}, kode room: ${kode}`);
     const room = rooms[kode];
-    if (!room || room.hostId !== socket.id) return;
 
+    if (!room) {
+      console.log(`[mulai-main] GAGAL: room ${kode} tidak ditemukan di server`);
+      return;
+    }
+    if (room.hostId !== socket.id) {
+      console.log(`[mulai-main] GAGAL: socket ${socket.id} bukan host room ${kode} (host: ${room.hostId})`);
+      return;
+    }
     if (room.players.length < MIN_PEMAIN) {
+      console.log(`[mulai-main] GAGAL: cuma ${room.players.length} pemain, butuh minimal ${MIN_PEMAIN}`);
       socket.emit('gagal-mulai', `Minimal ${MIN_PEMAIN} pemain buat mulai main.`);
       return;
     }
 
-    const deck = kocokDeck(buatDeck());
-    const hands = {};
-    room.players.forEach((p) => {
-      hands[p.id] = deck.splice(0, 4);
-    });
-    const discard = [deck.pop()];
+    try {
+      const deck = kocokDeck(buatDeck());
+      const hands = {};
+      room.players.forEach((p) => {
+        hands[p.id] = deck.splice(0, 4);
+      });
+      const discard = [deck.pop()];
 
-    room.game = {
-      deck,
-      discard,
-      hands,
-      turnOrder: room.players.map((p) => p.id),
-      turnIndex: 0,
-      status: 'bermain',
-    };
+      room.game = {
+        deck,
+        discard,
+        hands,
+        turnOrder: room.players.map((p) => p.id),
+        turnIndex: 0,
+        status: 'bermain',
+      };
 
-    kirimGameState(kode);
+      kirimGameState(kode);
+      console.log(`[mulai-main] BERHASIL: room ${kode} mulai main dengan ${room.players.length} pemain`);
+    } catch (err) {
+      console.error(`[mulai-main] ERROR saat setup game di room ${kode}:`, err);
+    }
   });
 
   socket.on('ambil-kartu', ({ sumber }) => {
@@ -231,6 +263,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    console.log(`[disconnect] socket ${socket.id} terputus`);
     const kode = socket.data.kode;
     const room = rooms[kode];
     if (!room) return;
