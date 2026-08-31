@@ -1,223 +1,187 @@
+/* style.css */
 :root {
-  --cream: #d3d9df; /* Disesuaikan ke warna keabu-abuan dari mockup */
-  --paper: #e5e9ec;
-  --ink-dark: #111;
-  --ink-mid: #333;
-  --border: rgba(0, 0, 0, 0.4);
-  --bg-panel: #ced4da;
-  --green-btn: #4caf50;
-  --red-btn: #ff8a8a;
+  --bg-color: #d1d8dd;
+  --panel-bg: #e2e8ec;
+  --border-color: rgba(0, 0, 0, 0.4);
+  --turn-active: #4caf50;
+  --highlight-green: #32cd32;
+  --highlight-purple: #9c27b0;
+  --btn-red: #ff5252;
 }
-
-* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  background-color: var(--cream);
-  font-family: 'Inter', sans-serif;
-  color: var(--ink-dark);
-}
-
-.screen {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 auto;
-  padding: 32px 18px 60px;
-}
-
-.table-screen {
-  width: 100%;
+  font-family: sans-serif;
+  background-color: var(--bg-color);
+  color: #111;
   height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.hidden { display: none !important; }
-
-/* ---- Panel Informasi Atas ---- */
-.top-panel {
-  display: flex;
-  background: var(--bg-panel);
-  border-bottom: 2px solid var(--border);
-  padding: 10px 20px;
-  justify-content: space-between;
-  font-size: 0.85rem;
-}
-
-.panel-col {
-  flex: 1;
-  padding: 0 15px;
-}
-
-.panel-border-left {
-  border-left: 2px solid black;
-}
-
-.panel-row {
-  margin-bottom: 4px;
-}
-
-.top-stat-list {
-  list-style-type: disc;
-  padding-left: 20px;
-  margin: 0;
-}
-
-/* ---- Area Meja & Posisi Pemain ---- */
-.play-area {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
-.seat {
-  position: absolute;
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px; }
+
+/* Panel Atas */
+.top-panel {
   display: flex;
-  flex-direction: column;
+  background: var(--panel-bg);
+  border-bottom: 2px solid var(--border-color);
+  padding: 10px 20px;
+  font-size: 14px;
+}
+.panel-col { flex: 1; padding: 0 15px; }
+.border-left { border-left: 2px solid black; }
+ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
+
+/* Area Permainan */
+.play-area {
+  flex: 1;
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: center;
 }
 
+/* Posisi Pemain */
+.seat { position: absolute; display: flex; flex-direction: column; align-items: center; }
+.seat-top { top: 20px; }
+.seat-bottom { bottom: 20px; }
+.seat-left { left: 40px; transform: rotate(90deg); }
+.seat-right { right: 40px; transform: rotate(-90deg); }
+
+/* Indikator Giliran: Hijau aktif di nama player[cite: 4] */
 .seat-name {
   background: gray;
   color: black;
   font-weight: bold;
-  padding: 8px 20px;
+  padding: 5px 20px;
   border-radius: 8px;
   font-size: 1.2rem;
   margin: 10px;
-  z-index: 5;
+  transition: background 0.3s;
 }
+.seat-name.active-turn { background: var(--turn-active); }
+.seat-name.inactive { background: gray; } /* Kembali abu saat tidak giliran[cite: 4] */
 
-.seat-name.active-turn {
-  background: #00e676; /* Warna hijau menyala untuk giliran */
-}
-
-/* Posisi 4 Arah */
-.seat-top { top: 20px; left: 50%; transform: translateX(-50%); }
-.seat-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
-.seat-left { left: 40px; top: 50%; transform: translateY(-50%); }
-.seat-right { right: 40px; top: 50%; transform: translateY(-50%); }
-
-/* ---- Fanning Kartu (Efek Menumpuk) ---- */
-.fanning-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fanning-container .card-img, 
-.fanning-container .seat-card-back {
+/* Kartu & Fanning */
+.fanning-container { display: flex; align-items: center; justify-content: center; }
+.card-img {
   width: 80px;
+  height: 115px;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  box-shadow: -3px 0 6px rgba(0,0,0,0.3);
-  margin-left: -55px; /* Kunci efek overlap */
-  position: relative;
+  border: 2px solid var(--border-color);
   background: white;
+  margin-left: -55px; /* Overlap */
+  position: relative;
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+}
+.fanning-container > .card-img:first-child { margin-left: 0; }
+
+/* Interaksi Kartu (Border ungu aktif saat klik kartu sendiri[cite: 4]) */
+.my-cards .card-img:hover { transform: translateY(-10px); }
+.my-cards .card-img.selected {
+  border-color: var(--highlight-purple);
+  border-width: 4px;
+  transform: translateY(-15px);
+  z-index: 10;
 }
 
-.fanning-container > *:first-child {
-  margin-left: 0;
-}
-
-/* Rotasi untuk pemain kiri dan kanan */
-.seat-left .fanning-container { transform: rotate(90deg); margin-left: 40px; }
-.seat-right .fanning-container { transform: rotate(-90deg); margin-right: 40px; }
-.seat-top .fanning-container { transform: rotate(180deg); margin-top: 10px;}
-
-.seat-card-back {
-  content: url('/img/back.png');
-}
-
-/* ---- Tengah (Deck & Discard) ---- */
+/* Area Tengah */
 .center-area {
-  position: relative;
   display: flex;
-  gap: 80px;
-  align-items: center;
-  justify-content: center;
-}
-
-.pile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+  gap: 100px;
   align-items: center;
 }
 
-.pile-deck .card-img {
-  width: 110px;
-  border: 4px solid #4caf50;
-  border-radius: 8px;
-}
-
-.pile-discard .card-img {
-  width: 100px;
-  transform: rotate(-10deg); /* Sedikit miring natural */
-}
-
-.ambil-btn-overlay {
+.pile { position: relative; }
+.card-overlay-text {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--green-btn);
-  color: black;
-  font-size: 1.5rem;
+  top: 50%; left: 110%;
+  transform: translateY(-50%);
   font-weight: bold;
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: 2px solid black;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  display: none;
-}
-.ambil-btn-overlay.aktif { display: block; }
-.ambil-btn-overlay:active { transform: translate(-50%, -45%); }
-
-.buang-label {
-  margin-top: 15px;
-  background: var(--red-btn);
-  color: black;
-  font-weight: bold;
-  padding: 5px 15px;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: none;
-}
-.buang-label.aktif { display: block; }
-
-/* ---- Panel Skor Bawah Kanan ---- */
-.score-panel {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: var(--bg-panel);
-  padding: 15px 25px;
-  border: 1px solid var(--border);
   text-align: center;
 }
 
-.score-title { font-size: 0.9rem; margin-bottom: 5px; }
-.score-detail { font-weight: bold; font-size: 1.1rem; color: #8B4513; }
-.score-calc { font-size: 0.9rem; color: #555; }
+/* Discard Grid (11 baris maksimal, lalu membuat dua baris[cite: 4]) */
+.discard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: calc(11 * 25px + 80px); /* Memaksa wrap setelah 11 kartu (margin-left -55px = 25px offset) */
+  align-items: center;
+}
+.discard-grid .card-img { margin-left: -55px; margin-bottom: -80px; }
+.discard-grid .card-img:nth-child(11n + 1) { margin-left: 0; } /* Reset overlap di baris baru */
+
+/* Interaksi Tumpukan (Border hijau aktif saat giliran ambil[cite: 4]) */
+.pile.active-draw .card-img {
+  border-color: var(--highlight-green);
+  border-width: 4px;
+}
+.pile.active-draw { cursor: pointer; }
+
+/* Tombol Aksi */
+.action-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid black;
+  cursor: pointer;
+  display: none; /* Hidden by default */
+  z-index: 20;
+}
+.btn-ambil { background: var(--turn-active); color: black; }
+.btn-buang { background: var(--btn-red); color: white; }
+
+/* Munculkan tombol saat kondisi terpenuhi[cite: 4] */
+.pile.active-draw:hover .btn-ambil { display: block; }
+.my-cards .card-img.selected .btn-buang {
+  display: block; 
+  /* Membutuhkan elemen tombol ditaruh di dalam parent kartu via JS */
+}
+
+/* Panel Skor */
+.score-panel {
+  position: absolute;
+  bottom: 20px; right: 20px;
+  background: var(--panel-bg);
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+.score-detail { font-weight: bold; color: #8B4513; }
 .score-total { font-size: 1.5rem; font-weight: bold; }
 
-/* Interaksi Kartu Tangan */
-.my-hand .card-img.selectable { cursor: pointer; transition: transform 0.2s; }
-.my-hand .card-img.selectable:hover { transform: translateY(-15px); }
-
-/* Komponen bawaan dari source asli */
-.btn-primary { width: 100%; padding: 14px; border-radius: 10px; background: var(--ink-dark); color: white; cursor: pointer; border: none; font-weight: bold;}
-.card { background: white; padding: 20px; border-radius: 10px; width: 100%; margin-bottom: 20px; }
-input { width: 100%; padding: 10px; margin-bottom: 10px; }
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.overlay-card { background: white; padding: 30px; border-radius: 10px; text-align: center; }
+/* End Game Overlay */
+.end-game-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+}
+.win-text {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--turn-active);
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 20px;
+}
+.end-actions button {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  border: 2px solid black;
+  border-radius: 8px;
+  font-weight: bold;
+}
+.btn-primary { background: var(--panel-bg); }
+.btn-danger { background: var(--btn-red); color: white; }

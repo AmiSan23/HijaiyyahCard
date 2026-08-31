@@ -1,133 +1,105 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-<title>Checkmate 101</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkmate 101 - Static</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Landing & Lobby tetap sama dengan versi sebelumnya -->
-  <main id="landing" class="screen">
-    <div class="brand">
-      <h1>Checkmate 101</h1>
-      <p class="subtitle">Main kartu 41 versi Hijaiyyah</p>
+  <!-- Panel Informasi Atas -->
+  <div class="top-panel">
+    <div class="panel-col">
+      <div>Room: <span id="roomCode">####</span></div>
+      <div>Player:</div>
+      <ul id="playerStats">
+        <li>Aaa W: 1 L: 2</li>
+        <li>Bbb W: 0 L: 1</li>
+        <li>Ccc W: 2 L: 2</li>
+        <li>Ddd W: 0 L: 2</li>
+      </ul>
     </div>
-
-    <div class="card">
-      <label for="inputNama">Nama kamu</label>
-      <input type="text" id="inputNama" placeholder="Misal: Andy" maxlength="16" autocomplete="off" />
-
-      <div class="tabs" role="tablist">
-        <button id="btnTabBuat" class="tab active" role="tab" aria-selected="true">Buat Room</button>
-        <button id="btnTabGabung" class="tab" role="tab" aria-selected="false">Gabung Room</button>
-      </div>
-
-      <div id="panelBuat" class="panel">
-        <button id="btnBuatRoom" class="btn-primary">Buat Room Baru</button>
-      </div>
-
-      <div id="panelGabung" class="panel hidden">
-        <input type="text" id="inputKode" placeholder="Kode room (4 digit)" maxlength="4" inputmode="numeric" autocomplete="off" />
-        <button id="btnGabungRoom" class="btn-primary">Gabung ke Room</button>
-      </div>
-
-      <p id="errorMsg" class="error hidden" role="alert"></p>
+    <div class="panel-col border-left">
+      <div>Round: <span id="roundNum">11</span></div>
+      <div class="mt-10">Last Game:</div>
+      <div>Win: Aaa<br>Lose: Ccc</div>
     </div>
-  </main>
-
-  <main id="lobby" class="screen hidden">
-    <p class="lobby-label">Kode Room</p>
-    <div class="kode-besar" id="kodeBesar">----</div>
-    <div class="card">
-      <p class="players-label">Pemain di room ini</p>
-      <ul class="player-list" id="playerList"></ul>
-    </div>
-    <button id="btnMulai" class="btn-primary hidden">Mulai Main</button>
-    <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
-  </main>
-
-  <!-- Layar Meja Baru -->
-  <main id="meja" class="table-screen hidden">
-    <!-- Panel Informasi Atas -->
-    <div class="top-panel">
-      <div class="panel-col">
-        <div class="panel-row">Room: <span id="infoRoomNum">####</span></div>
-        <div class="panel-row">Player:</div>
-        <ul id="topStatList" class="top-stat-list"></ul>
-      </div>
-      <div class="panel-col panel-border-left">
-        <div class="panel-row">Round: <span id="infoRoundNum">1</span></div>
-        <div class="panel-row" style="margin-top: 10px;">Last Game:</div>
-        <div class="panel-row" id="lastGameInfo"></div>
-      </div>
-      <div class="panel-col panel-border-left">
-        <div class="panel-row">Kartu terbuang: <span id="infoBuangNum">0</span></div>
-        <div class="panel-row">Sisa kartu: <span id="infoSisaNum">0</span></div>
-        <div class="panel-row" style="margin-top: 10px;">Giliran saat ini:</div>
-        <div class="panel-row"><ul class="top-stat-list"><li id="giliranInfoName">-</li></ul></div>
-      </div>
-    </div>
-
-    <!-- Area Permainan Utama -->
-    <div class="play-area">
-      
-      <!-- Pemain Atas (Ccc) -->
-      <div class="seat seat-top hidden" id="seatAtas"></div>
-
-      <!-- Pemain Kiri (Ddd) -->
-      <div class="seat seat-left hidden" id="seatKiri"></div>
-
-      <!-- Tengah (Deck & Buang) -->
-      <div class="center-area">
-        <div class="pile pile-deck">
-          <img id="drawPileImg" class="card-img pile-img" src="/img/back.png" alt="Deck" />
-          <div class="ambil-btn-overlay" id="ambilDeckBadge">Ambil</div>
-        </div>
-        
-        <!-- Pemain Kanan (Bbb) -->
-        <div class="seat seat-right hidden" id="seatKanan"></div>
-
-        <div class="pile pile-discard">
-          <img id="discardPileImg" class="card-img pile-img" src="/img/back.png" alt="Discard" />
-          <div class="buang-label" id="ambilBuangBadge">Buang</div>
-        </div>
-      </div>
-
-      <!-- Pemain Bawah / Kamu (Aaa) -->
-      <div class="seat seat-bottom">
-        <div class="my-hand fanning-container" id="myHand"></div>
-        <div class="seat-name active-turn" id="myNameLabel">Kamu</div>
-      </div>
-
-      <!-- Panel Poin Kanan Bawah -->
-      <div class="score-panel">
-        <div class="score-title">Kartumu:</div>
-        <div class="score-detail" id="scoreDetailStr">-</div>
-        <div class="score-calc" id="scoreCalcStr">-</div>
-        <div class="score-title" style="margin-top: 15px;">Poinmu saat ini:</div>
-        <div class="score-total" id="scoreTotalNum">0</div>
-      </div>
-      
-    </div>
-  </main>
-
-  <!-- Overlay Hasil tetap sama -->
-  <div id="hasilOverlay" class="overlay hidden">
-    <div class="overlay-card">
-      <h2 id="hasilJudul">Permainan Selesai</h2>
-      <p id="hasilDetail"></p>
-      <div class="reveal-area" id="revealArea"></div>
-      <button id="btnRondeBerikutnya" class="btn-primary">Ronde Berikutnya</button>
-      <button id="btnKembaliLobby" class="btn-link">Kembali ke lobi</button>
+    <div class="panel-col border-left">
+      <div>Kartu terbuang: <span id="discardCount">12</span></div>
+      <div>Sisa kartu: <span id="deckCount">88</span></div>
+      <div class="mt-10">Giliran saat ini:</div>
+      <div><ul style="padding-left: 20px; margin: 0;"><li><span id="currentTurnName">Aaa</span></li></ul></div>
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/client.js"></script>
+  <!-- Area Meja -->
+  <div class="play-area" id="playArea">
+    
+    <!-- Lawan Atas -->
+    <div class="seat seat-top">
+      <div class="seat-name" id="nameCcc">Ccc</div>
+      <div class="fanning-container opponent-cards" id="handCcc">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Lawan Kiri -->
+    <div class="seat seat-left">
+      <div class="seat-name" id="nameDdd">Ddd</div>
+      <div class="fanning-container opponent-cards" id="handDdd"></div>
+    </div>
+
+    <!-- Lawan Kanan -->
+    <div class="seat seat-right">
+      <div class="seat-name" id="nameBbb">Bbb</div>
+      <div class="fanning-container opponent-cards" id="handBbb"></div>
+    </div>
+
+    <!-- Area Tengah (Deck & Discard) -->
+    <div class="center-area" id="centerArea">
+      <!-- Deck -->
+      <div class="pile pile-deck" id="deckPile">
+        <img src="img/back.png" class="card-img" alt="Deck">
+        <div class="card-overlay-text">Sisa<br><span id="deckSisa">88</span></div>
+        <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
+      </div>
+
+      <!-- Discard Pile (Maks 11 per baris[cite: 4]) -->
+      <div class="pile pile-discard">
+        <div class="discard-grid" id="discardGrid">
+          <!-- Rendered via JS -->
+        </div>
+        <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
+      </div>
+    </div>
+
+    <!-- End Game Overlay (Muncul saat selesai[cite: 4]) -->
+    <div class="end-game-center hidden" id="endGameCenter">
+      <div class="win-text">WIN<br><span id="winnerName">Aaa</span></div>
+      <div class="end-actions">
+        <button class="btn-primary" id="btnMainLagi">Main Lagi</button>
+        <button class="btn-danger" id="btnKeluar">Keluar</button>
+      </div>
+    </div>
+
+    <!-- Pemain Utama (Bawah) -->
+    <div class="seat seat-bottom">
+      <div class="fanning-container my-cards" id="myHand">
+        <!-- Rendered via JS -->
+      </div>
+      <div class="seat-name active-turn" id="nameAaa">Aaa</div>
+    </div>
+
+    <!-- Panel Poin -->
+    <div class="score-panel">
+      <div class="score-title">Kartumu:</div>
+      <div class="score-detail" id="scoreCards">U' | Khu | Huu | Kh</div>
+      <div class="score-calc" id="scoreCalc">26 + 25 + 25 - 25</div>
+      <div class="score-title mt-10">Poinmu saat ini:</div>
+      <div class="score-total" id="scoreTotal">50</div>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
 </body>
 </html>
