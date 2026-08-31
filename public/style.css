@@ -1,15 +1,12 @@
 :root {
-  --cream: #F4ECD8;
-  --paper: #FFFCF4;
-  --ink-dark: #4A2E14;
-  --ink-mid: #6B4423;
-  --ink-light: #8B5A2B;
-  --border: rgba(74, 46, 20, 0.22);
-
-  --fathah: #378ADD;
-  --kasrah: #E0A82E;
-  --dhommah: #B24A24;
-  --sukun: #6B6A64;
+  --cream: #d3d9df; /* Disesuaikan ke warna keabu-abuan dari mockup */
+  --paper: #e5e9ec;
+  --ink-dark: #111;
+  --ink-mid: #333;
+  --border: rgba(0, 0, 0, 0.4);
+  --bg-panel: #ced4da;
+  --green-btn: #4caf50;
+  --red-btn: #ff8a8a;
 }
 
 * { box-sizing: border-box; }
@@ -18,12 +15,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background-color: var(--cream);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='none' stroke='%238B5A2B' stroke-width='1' opacity='0.16'%3E%3Crect x='10' y='10' width='28' height='28'/%3E%3Crect x='10' y='10' width='28' height='28' transform='rotate(45 24 24)'/%3E%3C/g%3E%3C/svg%3E");
   font-family: 'Inter', sans-serif;
   color: var(--ink-dark);
-  display: flex;
-  justify-content: center;
-  padding: 32px 18px 60px;
 }
 
 .screen {
@@ -32,522 +25,199 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 auto;
+  padding: 32px 18px 60px;
+}
+
+.table-screen {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .hidden { display: none !important; }
 
-/* ---- Landing ---- */
-
-.brand {
-  text-align: center;
-  margin-bottom: 26px;
-}
-
-.brand h1 {
-  font-family: 'Amiri', serif;
-  font-size: 2.4rem;
-  margin: 0 0 6px;
-  letter-spacing: 0.01em;
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--ink-mid);
-  font-size: 0.95rem;
-}
-
-.card {
-  width: 100%;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: 0 6px 18px rgba(74, 46, 20, 0.08);
-}
-
-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--ink-mid);
-}
-
-input[type="text"] {
-  width: 100%;
-  padding: 13px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #fff;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  color: var(--ink-dark);
-  margin-bottom: 18px;
-}
-
-input[type="text"]:focus {
-  outline: 2px solid var(--ink-light);
-  outline-offset: 1px;
-}
-
-#inputKode {
-  text-align: center;
-  letter-spacing: 0.3em;
-  font-size: 1.3rem;
-  font-weight: 700;
-}
-
-.tabs {
+/* ---- Panel Informasi Atas ---- */
+.top-panel {
   display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
+  background: var(--bg-panel);
+  border-bottom: 2px solid var(--border);
+  padding: 10px 20px;
+  justify-content: space-between;
+  font-size: 0.85rem;
 }
 
-.tab {
+.panel-col {
   flex: 1;
-  padding: 10px 8px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--ink-mid);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 0 15px;
 }
 
-.tab.active {
-  background: var(--ink-dark);
-  color: var(--cream);
-  border-color: var(--ink-dark);
+.panel-border-left {
+  border-left: 2px solid black;
 }
 
-.btn-primary {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  background: var(--ink-dark);
-  color: var(--cream);
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-primary:hover { background: var(--ink-mid); }
-.btn-primary:active { background: #3a2410; }
-
-.btn-primary:focus-visible,
-.tab:focus-visible {
-  outline: 2px solid var(--fathah);
-  outline-offset: 2px;
-}
-
-.error {
-  margin: 14px 0 0;
-  color: var(--dhommah);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* ---- Lobby ---- */
-
-.lobby-label {
-  margin: 0 0 4px;
-  color: var(--ink-mid);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.kode-besar {
-  font-family: 'Amiri', serif;
-  font-size: 3.4rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--ink-dark);
-  line-height: 1;
-}
-
-.hint {
-  color: var(--ink-mid);
-  font-size: 0.88rem;
-  margin: 8px 0 22px;
-  text-align: center;
-}
-
-.players-label {
-  margin: 0 0 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-mid);
-}
-
-.player-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.player-list li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--cream);
-  border-radius: 10px;
-  font-weight: 600;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.host-tag {
-  margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink-mid);
-  background: rgba(74, 46, 20, 0.08);
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-
-#btnMulai {
-  margin-top: 20px;
-}
-
-#waitingMsg {
-  margin-top: 20px;
-}
-
-/* ---- Info bar (round, statistik, last game) ---- */
-
-.info-bar {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.info-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.info-chip {
-  font-size: 0.66rem;
-  font-weight: 700;
-  color: var(--ink-mid);
-  background: var(--cream);
-  padding: 3px 9px;
-  border-radius: 999px;
-}
-
-.stat-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: 0.7rem;
-  color: var(--ink-dark);
+.panel-row {
   margin-bottom: 4px;
 }
 
-.stat-list span b {
-  font-weight: 700;
-}
-
-.stat-win { color: #3B6D11; }
-.stat-lose { color: var(--dhommah); }
-
-.last-game {
-  font-size: 0.68rem;
-  color: var(--ink-mid);
+.top-stat-list {
+  list-style-type: disc;
+  padding-left: 20px;
   margin: 0;
 }
 
-.btn-link {
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--ink-mid);
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-decoration: underline;
-  margin-top: 10px;
-  cursor: pointer;
-  padding: 6px;
-}
-
-/* ---- Meja kartu ---- */
-
-:root {
-  --aktif: #3B6D11;
-  --aktif-terang: #EAF3DE;
-}
-
-.table-info {
-  text-align: center;
-  margin-bottom: 14px;
-}
-
-.turn-info {
-  font-weight: 700;
-  font-size: 1.05rem;
-  margin: 0 0 4px;
-}
-
-.meja-grid {
-  display: grid;
-  grid-template-columns: 62px 1fr 62px;
-  grid-template-rows: auto auto;
-  gap: 8px;
+/* ---- Area Meja & Posisi Pemain ---- */
+.play-area {
+  position: relative;
+  flex: 1;
+  display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  min-height: 150px;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .seat {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
 }
 
-.seat-atas { grid-column: 2; grid-row: 1; }
-.seat-kiri { grid-column: 1; grid-row: 2; }
-.seat-kanan { grid-column: 3; grid-row: 2; }
-
-.seat-stack {
-  width: 34px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  display: block;
+.seat-name {
+  background: gray;
+  color: black;
+  font-weight: bold;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  margin: 10px;
+  z-index: 5;
 }
 
-.seat-nama {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--ink-dark);
-  padding: 2px 8px;
-  border-radius: 999px;
-  transition: background 0.2s ease, color 0.2s ease;
+.seat-name.active-turn {
+  background: #00e676; /* Warna hijau menyala untuk giliran */
 }
 
-.seat.giliran .seat-nama {
-  background: var(--aktif);
-  color: var(--aktif-terang);
-}
+/* Posisi 4 Arah */
+.seat-top { top: 20px; left: 50%; transform: translateX(-50%); }
+.seat-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
+.seat-left { left: 40px; top: 50%; transform: translateY(-50%); }
+.seat-right { right: 40px; top: 50%; transform: translateY(-50%); }
 
-.seat-jumlah {
-  font-size: 0.62rem;
-  color: var(--ink-mid);
-}
-
-.pusat {
-  grid-column: 2;
-  grid-row: 2;
+/* ---- Fanning Kartu (Efek Menumpuk) ---- */
+.fanning-container {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 22px;
+}
+
+.fanning-container .card-img, 
+.fanning-container .seat-card-back {
+  width: 80px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: -3px 0 6px rgba(0,0,0,0.3);
+  margin-left: -55px; /* Kunci efek overlap */
+  position: relative;
+  background: white;
+}
+
+.fanning-container > *:first-child {
+  margin-left: 0;
+}
+
+/* Rotasi untuk pemain kiri dan kanan */
+.seat-left .fanning-container { transform: rotate(90deg); margin-left: 40px; }
+.seat-right .fanning-container { transform: rotate(-90deg); margin-right: 40px; }
+.seat-top .fanning-container { transform: rotate(180deg); margin-top: 10px;}
+
+.seat-card-back {
+  content: url('/img/back.png');
+}
+
+/* ---- Tengah (Deck & Discard) ---- */
+.center-area {
+  position: relative;
+  display: flex;
+  gap: 80px;
+  align-items: center;
+  justify-content: center;
 }
 
 .pile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
 }
 
-.card-img {
-  width: 74px;
+.pile-deck .card-img {
+  width: 110px;
+  border: 4px solid #4caf50;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 6px rgba(74, 46, 20, 0.15);
-  display: block;
 }
 
-.pile-img {
-  border: 2.5px solid var(--border);
-  opacity: 0.55;
-  cursor: not-allowed;
-  transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.12s ease;
+.pile-discard .card-img {
+  width: 100px;
+  transform: rotate(-10deg); /* Sedikit miring natural */
 }
 
-.pile-img.aktif {
-  border-color: var(--aktif);
-  opacity: 1;
+.ambil-btn-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--green-btn);
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 2px solid black;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  display: none;
 }
+.ambil-btn-overlay.aktif { display: block; }
+.ambil-btn-overlay:active { transform: translate(-50%, -45%); }
 
-.pile-img.aktif:active {
-  transform: scale(0.94);
-}
-
-.ambil-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 999px;
-  background: var(--border);
-  color: var(--ink-mid);
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.ambil-badge.aktif {
-  background: var(--aktif);
-  color: var(--aktif-terang);
-}
-
-.my-hand-wrap {
-  width: 100%;
-}
-
-#myNameLabel {
-  display: inline-block;
-  margin: 0 auto 8px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--ink-mid);
-  text-align: center;
-  width: 100%;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-#myNameLabel.giliran {
-  background: var(--aktif);
-  color: var(--aktif-terang);
-}
-
-.my-hand {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.my-hand .card-img.selectable {
+.buang-label {
+  margin-top: 15px;
+  background: var(--red-btn);
+  color: black;
+  font-weight: bold;
+  padding: 5px 15px;
+  border-radius: 8px;
+  font-size: 1.1rem;
   cursor: pointer;
+  display: none;
 }
+.buang-label.aktif { display: block; }
 
-.my-hand .card-img.selectable:active {
-  transform: translateY(-4px) scale(0.97);
-}
-
-#aksiHint {
-  margin-top: 16px;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* ---- Animasi kartu ---- */
-
-@keyframes kartuMasuk {
-  from { opacity: 0; transform: translateY(20px) scale(0.85); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes kartuKeluar {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(-26px) scale(0.7); }
-}
-
-@keyframes pilePop {
-  0%   { transform: scale(0.8); }
-  60%  { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-@keyframes flipIn {
-  from { transform: rotateY(90deg); opacity: 0.2; }
-  to   { transform: rotateY(0deg); opacity: 1; }
-}
-
-.card-img.masuk { animation: kartuMasuk 0.25s ease-out; }
-.card-img.keluar { animation: kartuKeluar 0.22s ease-in forwards; }
-.pile-img.pop { animation: pilePop 0.25s ease-out; }
-
-/* ---- Overlay hasil & showdown ---- */
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(74, 46, 20, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 10;
-}
-
-.overlay-card {
-  background: var(--paper);
-  border-radius: 16px;
-  padding: 26px;
-  text-align: center;
-  max-width: 360px;
-  width: 100%;
-  max-height: 88vh;
-  overflow-y: auto;
-}
-
-.overlay-card h2 {
-  font-family: 'Amiri', serif;
-  margin: 0 0 10px;
-}
-
-.overlay-card p {
-  color: var(--ink-mid);
-  margin: 0 0 16px;
-}
-
-.reveal-area {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 18px;
-  text-align: left;
-}
-
-.reveal-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.reveal-nama {
-  font-size: 0.75rem;
-  font-weight: 700;
-  min-width: 56px;
-  flex-shrink: 0;
-}
-
-.reveal-cards {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.reveal-card {
-  width: 32px;
-  border-radius: 4px;
+/* ---- Panel Skor Bawah Kanan ---- */
+.score-panel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-panel);
+  padding: 15px 25px;
   border: 1px solid var(--border);
-  perspective: 200px;
-  animation: flipIn 0.35s ease-out backwards;
+  text-align: center;
 }
+
+.score-title { font-size: 0.9rem; margin-bottom: 5px; }
+.score-detail { font-weight: bold; font-size: 1.1rem; color: #8B4513; }
+.score-calc { font-size: 0.9rem; color: #555; }
+.score-total { font-size: 1.5rem; font-weight: bold; }
+
+/* Interaksi Kartu Tangan */
+.my-hand .card-img.selectable { cursor: pointer; transition: transform 0.2s; }
+.my-hand .card-img.selectable:hover { transform: translateY(-15px); }
+
+/* Komponen bawaan dari source asli */
+.btn-primary { width: 100%; padding: 14px; border-radius: 10px; background: var(--ink-dark); color: white; cursor: pointer; border: none; font-weight: bold;}
+.card { background: white; padding: 20px; border-radius: 10px; width: 100%; margin-bottom: 20px; }
+input { width: 100%; padding: 10px; margin-bottom: 10px; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.overlay-card { background: white; padding: 30px; border-radius: 10px; text-align: center; }

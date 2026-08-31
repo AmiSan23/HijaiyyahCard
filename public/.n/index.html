@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>Kartu Hijaiyyah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <main id="landing" class="screen">
+    <div class="brand">
+      <h1>Kartu Hijaiyyah</h1>
+      <p class="subtitle">Main kartu bareng, sambil kenalan sama huruf hijaiyyah</p>
+    </div>
+
+    <div class="card">
+      <label for="inputNama">Nama kamu</label>
+      <input type="text" id="inputNama" placeholder="Misal: Andy" maxlength="16" autocomplete="off" />
+
+      <div class="tabs" role="tablist">
+        <button id="btnTabBuat" class="tab active" role="tab" aria-selected="true">Buat Room</button>
+        <button id="btnTabGabung" class="tab" role="tab" aria-selected="false">Gabung Room</button>
+      </div>
+
+      <div id="panelBuat" class="panel">
+        <button id="btnBuatRoom" class="btn-primary">Buat Room Baru</button>
+      </div>
+
+      <div id="panelGabung" class="panel hidden">
+        <input type="text" id="inputKode" placeholder="Kode room (4 digit)" maxlength="4" inputmode="numeric" autocomplete="off" />
+        <button id="btnGabungRoom" class="btn-primary">Gabung ke Room</button>
+      </div>
+
+      <p id="errorMsg" class="error hidden" role="alert"></p>
+    </div>
+  </main>
+
+  <main id="lobby" class="screen hidden">
+    <p class="lobby-label">Kode Room</p>
+    <div class="kode-besar" id="kodeBesar">----</div>
+    <p class="hint">Kasih tau kode ini ke temen-temen kamu</p>
+
+    <div class="card">
+      <p class="players-label">Pemain di room ini</p>
+      <ul class="player-list" id="playerList"></ul>
+    </div>
+
+    <button id="btnMulai" class="btn-primary hidden">Mulai Main</button>
+    <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
+  </main>
+
+  <main id="meja" class="screen hidden">
+    <div class="info-bar">
+      <div class="info-chip-row">
+        <span class="info-chip" id="infoRoomChip">Room ----</span>
+        <span class="info-chip" id="infoRoundChip">Ronde 1</span>
+        <span class="info-chip" id="infoBuangChip">Terbuang 0</span>
+        <span class="info-chip" id="infoSisaChip">Sisa 0</span>
+      </div>
+      <div class="stat-list" id="statList"></div>
+      <p class="last-game hidden" id="lastGameInfo"></p>
+    </div>
+
+    <div class="table-info">
+      <p id="giliranInfo" class="turn-info">Giliran: -</p>
+    </div>
+
+    <div class="meja-grid">
+      <div class="seat seat-atas hidden" id="seatAtas"></div>
+      <div class="seat seat-kiri hidden" id="seatKiri"></div>
+
+      <div class="pusat">
+        <div class="pile">
+          <img id="drawPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan tertutup" />
+          <span class="ambil-badge" id="ambilDeckBadge">Ambil</span>
+        </div>
+        <div class="pile">
+          <img id="discardPileImg" class="card-img pile-img" src="/img/back.png" alt="Tumpukan buang" />
+          <span class="ambil-badge" id="ambilBuangBadge">Ambil</span>
+        </div>
+      </div>
+
+      <div class="seat seat-kanan hidden" id="seatKanan"></div>
+    </div>
+
+    <div class="my-hand-wrap">
+      <p class="players-label" id="myNameLabel">Tangan kamu</p>
+      <div class="my-hand" id="myHand"></div>
+      <p id="aksiHint" class="hint"></p>
+    </div>
+  </main>
+
+  <div id="hasilOverlay" class="overlay hidden">
+    <div class="overlay-card">
+      <h2 id="hasilJudul">Permainan Selesai</h2>
+      <p id="hasilDetail"></p>
+      <div class="reveal-area" id="revealArea"></div>
+      <button id="btnRondeBerikutnya" class="btn-primary">Ronde Berikutnya</button>
+      <button id="btnKembaliLobby" class="btn-link">Kembali ke lobi (ganti pemain)</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
