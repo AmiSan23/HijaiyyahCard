@@ -37,6 +37,49 @@ function ringkasanRoom(kode) {
   return { kode, players: room.players, hostId: room.hostId };
 }
 
+function pastikanStat(room, playerId) {
+  if (!room.stats[playerId]) {
+    room.stats[playerId] = { menang: 0, kalah: 0 };
+  }
+}
+
+// Mulai ronde baru: kocok deck, bagi 4 kartu/pemain, buka 1 kartu buang.
+// Dipakai baik buat "Mulai Main" pertama kali maupun "Ronde Berikutnya".
+function mulaiRondeBaru(kode) {
+  const room = rooms[kode];
+  if (!room) return;
+
+  const deck = kocokDeck(buatDeck());
+  const hands = {};
+  room.players.forEach((p) => {
+    hands[p.id] = deck.splice(0, 4);
+  });
+  const discard = [deck.pop()];
+
+  room.roundNumber = (room.roundNumber || 0) + 1;
+  room.game = {
+    deck,
+    discard,
+    hands,
+    turnOrder: room.players.map((p) => p.id),
+    turnIndex: 0,
+    status: 'bermain',
+  };
+}
+
+// Catat menang/kalah 1 ronde: satu pemenang, sisanya dianggap kalah.
+function catatHasilRonde(room, idPemenang, namaPemenang) {
+  room.players.forEach((p) => {
+    pastikanStat(room, p.id);
+    if (p.id === idPemenang) room.stats[p.id].menang += 1;
+    else room.stats[p.id].kalah += 1;
+  });
+  room.lastGame = {
+    menang: namaPemenang,
+    kalah: room.players.filter((p) => p.id !== idPemenang).map((p) => p.nama),
+  };
+}
+
 // Kirim state permainan: data umum (giliran, tumpukan buang, sisa deck, jumlah
 // kartu tiap pemain) ke semua orang, plus tangan pribadi ke masing-masing.
 function kirimGameState(kode) {
@@ -50,11 +93,19 @@ function kirimGameState(kode) {
     giliranId,
     discardTop: game.discard[game.discard.length - 1] || null,
     sisaDeck: game.deck.length,
-    pemain: room.players.map((p) => ({
-      id: p.id,
-      nama: p.nama,
-      jumlahKartu: game.hands[p.id] ? game.hands[p.id].length : 0,
-    })),
+    kartuTerbuang: game.discard.length,
+    roundNumber: room.roundNumber || 1,
+    lastGame: room.lastGame || null,
+    pemain: room.players.map((p) => {
+      pastikanStat(room, p.id);
+      return {
+        id: p.id,
+        nama: p.nama,
+        jumlahKartu: game.hands[p.id] ? game.hands[p.id].length : 0,
+        menang: room.stats[p.id].menang,
+        kalah: room.stats[p.id].kalah,
+      };
+    }),
   };
 
   room.players.forEach((p) => {
@@ -80,9 +131,13 @@ function selesaikanKarenaDeckHabis(kode) {
   room.players.forEach((p) => {
     const skor = hitungSkor(game.hands[p.id]);
     if (!terbaik || skor > terbaik.skor) {
-      terbaik = { nama: p.nama, skor };
+      terbaik = { id: p.id, nama: p.nama, skor };
     }
   });
+
+  if (terbaik) {
+    catatHasilRonde(room, terbaik.id, terbaik.nama);
+  }
 
   kirimGameState(kode);
   io.to(kode).emit('permainan-selesai', {
@@ -104,6 +159,9 @@ io.on('connection', (socket) => {
       hostId: socket.id,
       players: [{ id: socket.id, nama: namaBersih }],
       game: null,
+      roundNumber: 0,
+      stats: { [socket.id]: { menang: 0, kalah: 0 } },
+      lastGame: null,
     };
 
     socket.join(kode);
@@ -136,6 +194,7 @@ io.on('connection', (socket) => {
     }
 
     room.players.push({ id: socket.id, nama: namaBersih });
+    pastikanStat(room, socket.id);
     socket.join(kodeBersih);
     socket.data.kode = kodeBersih;
 
@@ -164,26 +223,26 @@ io.on('connection', (socket) => {
     }
 
     try {
-      const deck = kocokDeck(buatDeck());
-      const hands = {};
-      room.players.forEach((p) => {
-        hands[p.id] = deck.splice(0, 4);
-      });
-      const discard = [deck.pop()];
-
-      room.game = {
-        deck,
-        discard,
-        hands,
-        turnOrder: room.players.map((p) => p.id),
-        turnIndex: 0,
-        status: 'bermain',
-      };
-
+      mulaiRondeBaru(kode);
       kirimGameState(kode);
       console.log(`[mulai-main] BERHASIL: room ${kode} mulai main dengan ${room.players.length} pemain`);
     } catch (err) {
       console.error(`[mulai-main] ERROR saat setup game di room ${kode}:`, err);
+    }
+  });
+
+  socket.on('ronde-berikutnya', () => {
+    const kode = socket.data.kode;
+    const room = rooms[kode];
+    if (!room || room.hostId !== socket.id) return;
+    if (room.players.length < MIN_PEMAIN) return;
+
+    try {
+      mulaiRondeBaru(kode);
+      kirimGameState(kode);
+      console.log(`[ronde-berikutnya] BERHASIL: room ${kode} mulai ronde ${room.roundNumber}`);
+    } catch (err) {
+      console.error(`[ronde-berikutnya] ERROR di room ${kode}:`, err);
     }
   });
 
@@ -236,6 +295,7 @@ io.on('connection', (socket) => {
     if (cekCheckmate(tangan)) {
       game.status = 'selesai';
       const pemenang = room.players.find((p) => p.id === socket.id);
+      catatHasilRonde(room, socket.id, pemenang ? pemenang.nama : '-');
       kirimGameState(kode);
       io.to(kode).emit('permainan-selesai', {
         alasan: 'checkmate',

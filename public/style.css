@@ -231,6 +231,67 @@ input[type="text"]:focus {
   margin-top: 20px;
 }
 
+/* ---- Info bar (round, statistik, last game) ---- */
+
+.info-bar {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.info-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.info-chip {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--ink-mid);
+  background: var(--cream);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.stat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.7rem;
+  color: var(--ink-dark);
+  margin-bottom: 4px;
+}
+
+.stat-list span b {
+  font-weight: 700;
+}
+
+.stat-win { color: #3B6D11; }
+.stat-lose { color: var(--dhommah); }
+
+.last-game {
+  font-size: 0.68rem;
+  color: var(--ink-mid);
+  margin: 0;
+}
+
+.btn-link {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--ink-mid);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-top: 10px;
+  cursor: pointer;
+  padding: 6px;
+}
+
 /* ---- Meja kartu ---- */
 
 :root {

@@ -4,6 +4,7 @@ let hostIdSaatIni = null;
 let stateGameSaatIni = null;
 let prevHandIds = [];
 let prevDiscardFile = null;
+let kodeRoomSaatIni = '----';
 
 // ---- Elemen landing & lobby ----
 const landing = document.getElementById('landing');
@@ -29,7 +30,12 @@ const waitingMsg = document.getElementById('waitingMsg');
 
 // ---- Elemen meja ----
 const giliranInfo = document.getElementById('giliranInfo');
-const sisaDeckInfo = document.getElementById('sisaDeckInfo');
+const infoRoomChip = document.getElementById('infoRoomChip');
+const infoRoundChip = document.getElementById('infoRoundChip');
+const infoBuangChip = document.getElementById('infoBuangChip');
+const infoSisaChip = document.getElementById('infoSisaChip');
+const statList = document.getElementById('statList');
+const lastGameInfo = document.getElementById('lastGameInfo');
 const drawPileImg = document.getElementById('drawPileImg');
 const discardPileImg = document.getElementById('discardPileImg');
 const ambilDeckBadge = document.getElementById('ambilDeckBadge');
@@ -42,6 +48,7 @@ const hasilOverlay = document.getElementById('hasilOverlay');
 const hasilJudul = document.getElementById('hasilJudul');
 const hasilDetail = document.getElementById('hasilDetail');
 const revealArea = document.getElementById('revealArea');
+const btnRondeBerikutnya = document.getElementById('btnRondeBerikutnya');
 const btnKembaliLobby = document.getElementById('btnKembaliLobby');
 
 // ---- Tab Buat Room / Gabung Room ----
@@ -78,6 +85,10 @@ btnGabungRoom.addEventListener('click', () => {
 
 btnMulai.addEventListener('click', () => {
   socket.emit('mulai-main');
+});
+
+btnRondeBerikutnya.addEventListener('click', () => {
+  socket.emit('ronde-berikutnya');
 });
 
 btnKembaliLobby.addEventListener('click', () => {
@@ -145,6 +156,7 @@ function sembunyikanError() {
 
 function tampilkanLobby(data) {
   hostIdSaatIni = data.hostId;
+  kodeRoomSaatIni = data.kode;
   kodeBesar.textContent = data.kode;
   renderPlayerList(data.players);
   aturTombolMulai();
@@ -244,7 +256,25 @@ function renderMeja() {
   const pemainGiliran = data.pemain.find((p) => p.id === data.giliranId);
 
   giliranInfo.textContent = giliranSaya ? 'Giliran kamu!' : `Giliran: ${pemainGiliran ? pemainGiliran.nama : '-'}`;
-  sisaDeckInfo.textContent = `Sisa kartu di deck: ${data.sisaDeck}`;
+
+  infoRoomChip.textContent = `Room ${kodeRoomSaatIni}`;
+  infoRoundChip.textContent = `Ronde ${data.roundNumber || 1}`;
+  infoBuangChip.textContent = `Terbuang ${data.kartuTerbuang || 0}`;
+  infoSisaChip.textContent = `Sisa ${data.sisaDeck}`;
+
+  statList.innerHTML = '';
+  data.pemain.forEach((p) => {
+    const span = document.createElement('span');
+    span.innerHTML = `<b>${escapeHtml(p.nama)}</b> <span class="stat-win">${p.menang}M</span>-<span class="stat-lose">${p.kalah}K</span>`;
+    statList.appendChild(span);
+  });
+
+  if (data.lastGame) {
+    lastGameInfo.textContent = `Ronde lalu: menang ${data.lastGame.menang}, kalah ${data.lastGame.kalah.join(', ')}`;
+    lastGameInfo.classList.remove('hidden');
+  } else {
+    lastGameInfo.classList.add('hidden');
+  }
   myNameLabel.textContent = namaSaya;
   myNameLabel.classList.toggle('giliran', giliranSaya);
 
@@ -296,11 +326,12 @@ function renderMeja() {
 }
 
 function tampilkanHasil(data) {
+  const ronde = stateGameSaatIni ? stateGameSaatIni.roundNumber : '';
   if (data.alasan === 'checkmate') {
-    hasilJudul.textContent = 'Checkmate 101';
+    hasilJudul.textContent = `Checkmate 101 — Ronde ${ronde}`;
     hasilDetail.textContent = `${data.pemenang} menang dengan 4 kartu se-harakat totalnya 101.`;
   } else {
-    hasilJudul.textContent = 'Deck Habis';
+    hasilJudul.textContent = `Deck Habis — Ronde ${ronde}`;
     hasilDetail.textContent = `${data.pemenang} menang dengan skor tertinggi (${data.skor}).`;
   }
 

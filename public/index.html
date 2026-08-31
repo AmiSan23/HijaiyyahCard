@@ -54,9 +54,19 @@
   </main>
 
   <main id="meja" class="screen hidden">
+    <div class="info-bar">
+      <div class="info-chip-row">
+        <span class="info-chip" id="infoRoomChip">Room ----</span>
+        <span class="info-chip" id="infoRoundChip">Ronde 1</span>
+        <span class="info-chip" id="infoBuangChip">Terbuang 0</span>
+        <span class="info-chip" id="infoSisaChip">Sisa 0</span>
+      </div>
+      <div class="stat-list" id="statList"></div>
+      <p class="last-game hidden" id="lastGameInfo"></p>
+    </div>
+
     <div class="table-info">
       <p id="giliranInfo" class="turn-info">Giliran: -</p>
-      <p id="sisaDeckInfo" class="hint">Sisa kartu di deck: -</p>
     </div>
 
     <div class="meja-grid">
@@ -89,7 +99,8 @@
       <h2 id="hasilJudul">Permainan Selesai</h2>
       <p id="hasilDetail"></p>
       <div class="reveal-area" id="revealArea"></div>
-      <button id="btnKembaliLobby" class="btn-primary">Main Lagi</button>
+      <button id="btnRondeBerikutnya" class="btn-primary">Ronde Berikutnya</button>
+      <button id="btnKembaliLobby" class="btn-link">Kembali ke lobi (ganti pemain)</button>
     </div>
   </div>
 
