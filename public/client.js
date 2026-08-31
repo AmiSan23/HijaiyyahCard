@@ -241,6 +241,7 @@ function tampilkanMeja() {
   landing.classList.add('hidden');
   lobby.classList.add('hidden');
   meja.classList.remove('hidden');
+  hasilOverlay.classList.add('hidden');
 }
 
 function renderMeja() {
