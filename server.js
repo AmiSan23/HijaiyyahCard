@@ -43,23 +43,24 @@ function pastikanStat(room, playerId) {
   }
 }
 
-// Mulai ronde baru: kocok deck, bagi 4 kartu/pemain, buka 1 kartu buang.
-// Dipakai baik buat "Mulai Main" pertama kali maupun "Ronde Berikutnya".
+// Mulai ronde baru: kocok deck, bagi 4 kartu/pemain.
+// Tumpukan buang sekarang PER PEMAIN (bukan 1 bersama), mulai kosong semua.
 function mulaiRondeBaru(kode) {
   const room = rooms[kode];
   if (!room) return;
 
   const deck = kocokDeck(buatDeck());
   const hands = {};
+  const discards = {};
   room.players.forEach((p) => {
     hands[p.id] = deck.splice(0, 4);
+    discards[p.id] = [];
   });
-  const discard = [deck.pop()];
 
   room.roundNumber = (room.roundNumber || 0) + 1;
   room.game = {
     deck,
-    discard,
+    discards,
     hands,
     turnOrder: room.players.map((p) => p.id),
     turnIndex: 0,
@@ -80,8 +81,12 @@ function catatHasilRonde(room, idPemenang, namaPemenang) {
   };
 }
 
-// Kirim state permainan: data umum (giliran, tumpukan buang, sisa deck, jumlah
-// kartu tiap pemain) ke semua orang, plus tangan pribadi ke masing-masing.
+function totalKartuTerbuang(game) {
+  return Object.values(game.discards).reduce((total, arr) => total + arr.length, 0);
+}
+
+// Kirim state permainan: data umum (giliran, SEMUA tumpukan buang per pemain,
+// sisa deck, jumlah kartu tiap pemain) ke semua orang, plus tangan pribadi.
 function kirimGameState(kode) {
   const room = rooms[kode];
   if (!room || !room.game) return;
@@ -91,11 +96,11 @@ function kirimGameState(kode) {
 
   const tabelUmum = {
     giliranId,
-    discardTop: game.discard[game.discard.length - 1] || null,
     sisaDeck: game.deck.length,
-    kartuTerbuang: game.discard.length,
+    kartuTerbuang: totalKartuTerbuang(game),
     roundNumber: room.roundNumber || 1,
     lastGame: room.lastGame || null,
+    discards: game.discards,
     pemain: room.players.map((p) => {
       pastikanStat(room, p.id);
       return {
@@ -121,18 +126,26 @@ function kirimGameState(kode) {
   });
 }
 
+// Dipakai di akhir ronde (checkmate ATAU deck habis) - hitung skor SEMUA
+// pemain (jumlah polos, lihat cards.js) biar bisa ditampilkan semua di showdown.
+function hitungSemuaSkor(room, game) {
+  return room.players.map((p) => ({
+    id: p.id,
+    nama: p.nama,
+    skor: hitungSkor(game.hands[p.id]),
+  }));
+}
+
 function selesaikanKarenaDeckHabis(kode) {
   const room = rooms[kode];
   if (!room || !room.game) return;
   const game = room.game;
   game.status = 'selesai';
 
-  let terbaik = null;
-  room.players.forEach((p) => {
-    const skor = hitungSkor(game.hands[p.id]);
-    if (!terbaik || skor > terbaik.skor) {
-      terbaik = { id: p.id, nama: p.nama, skor };
-    }
+  const semuaSkor = hitungSemuaSkor(room, game);
+  let terbaik = semuaSkor[0];
+  semuaSkor.forEach((s) => {
+    if (s.skor > terbaik.skor) terbaik = s;
   });
 
   if (terbaik) {
@@ -143,8 +156,8 @@ function selesaikanKarenaDeckHabis(kode) {
   io.to(kode).emit('permainan-selesai', {
     alasan: 'deck-habis',
     pemenang: terbaik ? terbaik.nama : '-',
-    skor: terbaik ? terbaik.skor : 0,
-    semuaTangan: room.players.map((p) => ({ nama: p.nama, hand: game.hands[p.id] })),
+    semuaSkor,
+    semuaTangan: room.players.map((p) => ({ id: p.id, nama: p.nama, hand: game.hands[p.id] })),
   });
 }
 
@@ -246,7 +259,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('ambil-kartu', ({ sumber }) => {
+  // sumber: 'deck' atau 'buang'. Kalau 'buang', dariPemain wajib diisi id
+  // pemain yang tumpukan buangnya mau diambil (ada 4 tumpukan, bukan 1).
+  socket.on('ambil-kartu', ({ sumber, dariPemain }) => {
     const kode = socket.data.kode;
     const room = rooms[kode];
     if (!room || !room.game || room.game.status !== 'bermain') return;
@@ -260,8 +275,9 @@ io.on('connection', (socket) => {
 
     let kartu;
     if (sumber === 'buang') {
-      if (game.discard.length === 0) return;
-      kartu = game.discard.pop();
+      const tumpukan = game.discards[dariPemain];
+      if (!tumpukan || tumpukan.length === 0) return;
+      kartu = tumpukan.pop();
     } else {
       if (game.deck.length === 0) {
         selesaikanKarenaDeckHabis(kode);
@@ -290,17 +306,19 @@ io.on('connection', (socket) => {
     if (idx === -1) return;
 
     const [kartuDibuang] = tangan.splice(idx, 1);
-    game.discard.push(kartuDibuang);
+    game.discards[socket.id].push(kartuDibuang);
 
     if (cekCheckmate(tangan)) {
       game.status = 'selesai';
       const pemenang = room.players.find((p) => p.id === socket.id);
       catatHasilRonde(room, socket.id, pemenang ? pemenang.nama : '-');
+      const semuaSkor = hitungSemuaSkor(room, game);
       kirimGameState(kode);
       io.to(kode).emit('permainan-selesai', {
         alasan: 'checkmate',
         pemenang: pemenang ? pemenang.nama : '-',
-        semuaTangan: room.players.map((p) => ({ nama: p.nama, hand: game.hands[p.id] })),
+        semuaSkor,
+        semuaTangan: room.players.map((p) => ({ id: p.id, nama: p.nama, hand: game.hands[p.id] })),
       });
       return;
     }

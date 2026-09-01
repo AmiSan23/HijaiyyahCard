@@ -1,105 +1,128 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkmate 101 - Static</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>Kartu Hijaiyyah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <!-- Panel Informasi Atas -->
-  <div class="top-panel">
-    <div class="panel-col">
-      <div>Room: <span id="roomCode">####</span></div>
-      <div>Player:</div>
-      <ul id="playerStats">
-        <li>Aaa W: 1 L: 2</li>
-        <li>Bbb W: 0 L: 1</li>
-        <li>Ccc W: 2 L: 2</li>
-        <li>Ddd W: 0 L: 2</li>
-      </ul>
-    </div>
-    <div class="panel-col border-left">
-      <div>Round: <span id="roundNum">11</span></div>
-      <div class="mt-10">Last Game:</div>
-      <div>Win: Aaa<br>Lose: Ccc</div>
-    </div>
-    <div class="panel-col border-left">
-      <div>Kartu terbuang: <span id="discardCount">12</span></div>
-      <div>Sisa kartu: <span id="deckCount">88</span></div>
-      <div class="mt-10">Giliran saat ini:</div>
-      <div><ul style="padding-left: 20px; margin: 0;"><li><span id="currentTurnName">Aaa</span></li></ul></div>
-    </div>
-  </div>
 
-  <!-- Area Meja -->
-  <div class="play-area" id="playArea">
-    
-    <!-- Lawan Atas -->
-    <div class="seat seat-top">
-      <div class="seat-name" id="nameCcc">Ccc</div>
-      <div class="fanning-container opponent-cards" id="handCcc">
-        <!-- Rendered via JS -->
-      </div>
+  <main id="landing" class="screen">
+    <div class="brand">
+      <h1>Kartu Hijaiyyah</h1>
+      <p class="subtitle">Main kartu bareng, sambil kenalan sama huruf hijaiyyah</p>
     </div>
 
-    <!-- Lawan Kiri -->
-    <div class="seat seat-left">
-      <div class="seat-name" id="nameDdd">Ddd</div>
-      <div class="fanning-container opponent-cards" id="handDdd"></div>
-    </div>
+    <div class="card">
+      <label for="inputNama">Nama kamu</label>
+      <input type="text" id="inputNama" placeholder="Misal: Andy" maxlength="16" autocomplete="off" />
 
-    <!-- Lawan Kanan -->
-    <div class="seat seat-right">
-      <div class="seat-name" id="nameBbb">Bbb</div>
-      <div class="fanning-container opponent-cards" id="handBbb"></div>
-    </div>
-
-    <!-- Area Tengah (Deck & Discard) -->
-    <div class="center-area" id="centerArea">
-      <!-- Deck -->
-      <div class="pile pile-deck" id="deckPile">
-        <img src="img/back.png" class="card-img" alt="Deck">
-        <div class="card-overlay-text">Sisa<br><span id="deckSisa">88</span></div>
-        <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
+      <div class="tabs" role="tablist">
+        <button id="btnTabBuat" class="tab active" role="tab" aria-selected="true">Buat Room</button>
+        <button id="btnTabGabung" class="tab" role="tab" aria-selected="false">Gabung Room</button>
       </div>
 
-      <!-- Discard Pile (Maks 11 per baris[cite: 4]) -->
-      <div class="pile pile-discard">
-        <div class="discard-grid" id="discardGrid">
-          <!-- Rendered via JS -->
+      <div id="panelBuat" class="panel">
+        <button id="btnBuatRoom" class="btn-primary">Buat Room Baru</button>
+      </div>
+
+      <div id="panelGabung" class="panel hidden">
+        <input type="text" id="inputKode" placeholder="Kode room (4 digit)" maxlength="4" inputmode="numeric" autocomplete="off" />
+        <button id="btnGabungRoom" class="btn-primary">Gabung ke Room</button>
+      </div>
+
+      <p id="errorMsg" class="error hidden" role="alert"></p>
+    </div>
+  </main>
+
+  <main id="lobby" class="screen hidden">
+    <p class="lobby-label">Kode Room</p>
+    <div class="kode-besar" id="kodeBesar">----</div>
+    <p class="hint">Kasih tau kode ini ke temen-temen kamu</p>
+
+    <div class="card">
+      <p class="players-label">Pemain di room ini</p>
+      <ul class="player-list" id="playerList"></ul>
+    </div>
+
+    <button id="btnMulai" class="btn-primary hidden">Mulai Main</button>
+    <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
+  </main>
+
+  <main id="meja" class="screen hidden">
+    <irow class="top-panel">
+      <icol class="panel-col">
+        <div>Room: <span id="infoRoomChip">----</span></div>
+        <div>Player:</div>
+        <ul id="playerStats"></ul>
+      </icol>
+      <icol class="panel-col border-left">
+        <div>Ronde: <span id="infoRoundChip">1</span></div>
+        <div class="mt-10">Ronde lalu:</div>
+        <div id="lastGameInfo">-</div>
+      </icol>
+      <icol class="panel-col border-left">
+        <div>Kartu terbuang: <span id="infoBuangChip">0</span></div>
+        <div>Sisa kartu: <span id="infoSisaChip">0</span></div>
+        <div class="mt-10">Giliran saat ini:</div>
+        <div id="giliranInfo">-</div>
+      </icol>
+      <icol class="panel-actions">
+        <button class="hidden btn-primary" id="btnRondeBerikutnya">Ronde Berikutnya</button>
+        <button class="hidden btn-danger" id="btnKembaliLobby">Keluar</button>
+      </icol>
+    </irow>
+
+    <icol class="floor" id="floor">
+      <irow class="row3">
+        <div class="corner" id="cornerTL"><span class="corner-nama" id="cornerTLNama"></span><div class="discard-grid" id="cornerTLGrid"></div><button class="action-btn btn-ambil" id="cornerTLAmbil">Ambil</button></div>
+        <div class="seat seat-atas hidden" id="seatAtas"></div>
+        <div class="corner" id="cornerTR"><span class="corner-nama" id="cornerTRNama"></span><div class="discard-grid" id="cornerTRGrid"></div><button class="action-btn btn-ambil" id="cornerTRAmbil">Ambil</button></div>
+      </irow>
+
+      <irow class="row3">
+        <div class="seat seat-kiri hidden" id="seatKiri"></div>
+
+        <div class="table">
+          <div class="pile pile-deck" id="deckPile">
+            <img id="drawPileImg" class="card-img" src="/img/back.png" alt="Tumpukan tertutup" />
+            <div class="card-overlay-text">Sisa<br><span id="deckSisaText">0</span></div>
+            <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
+          </div>
+          <div class="end-game-center hidden" id="endGameCenter">
+            <div class="win-text">WIN<br><span id="winnerName">-</span></div>
+            <p class="win-detail" id="winnerDetail"></p>
+          </div>
         </div>
-        <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
-      </div>
+
+        <div class="seat seat-kanan hidden" id="seatKanan"></div>
+      </irow>
+
+      <irow class="row3">
+        <div class="corner" id="cornerBL"><span class="corner-nama" id="cornerBLNama"></span><div class="discard-grid" id="cornerBLGrid"></div><button class="action-btn btn-ambil" id="cornerBLAmbil">Ambil</button></div>
+        <div class="empty"></div>
+        <div class="corner" id="cornerBR"><span class="corner-nama" id="cornerBRNama"></span><div class="discard-grid" id="cornerBRGrid"></div><button class="action-btn btn-ambil" id="cornerBRAmbil">Ambil</button></div>
+      </irow>
+    </icol>
+
+    <div class="my-hand-wrap">
+      <p class="players-label" id="myNameLabel">Tangan kamu</p>
+      <div class="my-hand" id="myHand"></div>
     </div>
 
-    <!-- End Game Overlay (Muncul saat selesai[cite: 4]) -->
-    <div class="end-game-center hidden" id="endGameCenter">
-      <div class="win-text">WIN<br><span id="winnerName">Aaa</span></div>
-      <div class="end-actions">
-        <button class="btn-primary" id="btnMainLagi">Main Lagi</button>
-        <button class="btn-danger" id="btnKeluar">Keluar</button>
-      </div>
-    </div>
-
-    <!-- Pemain Utama (Bawah) -->
-    <div class="seat seat-bottom">
-      <div class="fanning-container my-cards" id="myHand">
-        <!-- Rendered via JS -->
-      </div>
-      <div class="seat-name active-turn" id="nameAaa">Aaa</div>
-    </div>
-
-    <!-- Panel Poin -->
     <div class="score-panel">
-      <div class="score-title">Kartumu:</div>
-      <div class="score-detail" id="scoreCards">U' | Khu | Huu | Kh</div>
-      <div class="score-calc" id="scoreCalc">26 + 25 + 25 - 25</div>
-      <div class="score-title mt-10">Poinmu saat ini:</div>
-      <div class="score-total" id="scoreTotal">50</div>
+      <div class="score-title">Kartu di tanganmu:</div>
+      <div class="score-detail" id="scoreCards">-</div>
+      <div class="score-title mt-10">Total nilai:</div>
+      <div class="score-total" id="scoreTotal">0</div>
     </div>
-  </div>
+  </main>
 
-  <script type="module" src="game.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
 </body>
 </html>

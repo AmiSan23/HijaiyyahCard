@@ -78,12 +78,10 @@ function cekCheckmate(hand) {
   return total === 101;
 }
 
-// Skor kalau deck habis sebelum ada yang checkmate.
-// Hand harus satu suit biar dihitung; kalau campuran, skornya 0.
+// Skor buat panel langsung & fallback pas deck habis: jumlah polos 4 kartu,
+// TIDAK butuh se-harakat lagi (beda dari Checkmate 101 yang tetap wajib se-harakat + pas 101).
 function hitungSkor(hand) {
   if (!hand || hand.length === 0) return 0;
-  const suitSama = hand.every((k) => k.suit === hand[0].suit);
-  if (!suitSama) return 0;
   return hand.reduce((a, k) => a + k.value, 0);
 }
 
