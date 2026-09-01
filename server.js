@@ -259,9 +259,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  // sumber: 'deck' atau 'buang'. Kalau 'buang', dariPemain wajib diisi id
-  // pemain yang tumpukan buangnya mau diambil (ada 4 tumpukan, bukan 1).
-  socket.on('ambil-kartu', ({ sumber, dariPemain }) => {
+  // sumber: 'deck' atau 'buang'. Kalau 'buang', server yang nentuin sendiri
+  // tumpukan siapa yang boleh diambil: SELALU tumpukan pemain sebelumnya di
+  // urutan giliran (posisi "kiri" kamu) - bukan pilihan bebas dari client.
+  socket.on('ambil-kartu', ({ sumber }) => {
     const kode = socket.data.kode;
     const room = rooms[kode];
     if (!room || !room.game || room.game.status !== 'bermain') return;
@@ -275,7 +276,9 @@ io.on('connection', (socket) => {
 
     let kartu;
     if (sumber === 'buang') {
-      const tumpukan = game.discards[dariPemain];
+      const prevIdx = (game.turnIndex - 1 + game.turnOrder.length) % game.turnOrder.length;
+      const prevPlayerId = game.turnOrder[prevIdx];
+      const tumpukan = game.discards[prevPlayerId];
       if (!tumpukan || tumpukan.length === 0) return;
       kartu = tumpukan.pop();
     } else {

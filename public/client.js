@@ -201,7 +201,8 @@ function susunKursi(pemain, myId) {
   if (idx === -1) return slot;
   slot.aku = pemain[idx];
   const lainnya = [...pemain.slice(idx + 1), ...pemain.slice(0, idx)];
-  const label = ['atas', 'kiri', 'kanan'];
+  // Rotasi giliran lawan jarum jam: aku(bawah) -> kanan -> atas -> kiri -> aku
+  const label = ['kanan', 'atas', 'kiri'];
   lainnya.forEach((p, i) => { if (i < 3) slot[label[i]] = p; });
   return slot;
 }
@@ -221,7 +222,7 @@ function renderSeat(elId, pemain, giliranId) {
   `;
 }
 
-function renderCorner(kode, pemain, data) {
+function renderCorner(kode, pemain, data, bolehInteraksi) {
   const nama = document.getElementById(`corner${kode}Nama`);
   const grid = document.getElementById(`corner${kode}Grid`);
   const btn = document.getElementById(`corner${kode}Ambil`);
@@ -230,6 +231,7 @@ function renderCorner(kode, pemain, data) {
     nama.textContent = '';
     grid.innerHTML = '';
     btn.classList.remove('aktif');
+    btn.classList.add('hidden');
     btn.onclick = null;
     return;
   }
@@ -245,11 +247,20 @@ function renderCorner(kode, pemain, data) {
     grid.appendChild(img);
   });
 
+  if (!bolehInteraksi) {
+    // Sudut ini cuma informasi - punya pemain lain, bukan yang boleh aku ambil.
+    btn.classList.add('hidden');
+    btn.classList.remove('aktif');
+    btn.onclick = null;
+    return;
+  }
+
+  btn.classList.remove('hidden');
   const bolehTarik = bolehAmbil() && tumpukan.length > 0;
   btn.classList.toggle('aktif', bolehTarik);
   btn.onclick = () => {
     if (!bolehAmbil() || tumpukan.length === 0) return;
-    socket.emit('ambil-kartu', { sumber: 'buang', dariPemain: pemain.id });
+    socket.emit('ambil-kartu', { sumber: 'buang' });
   };
 }
 
@@ -293,11 +304,12 @@ function renderMeja() {
   renderSeat('seatKiri', kursi.kiri, data.giliranId);
   renderSeat('seatKanan', kursi.kanan, data.giliranId);
 
-  // 4 sudut tumpukan buang: kiri->TL, atas->TR, kanan->BR, aku->BL
-  renderCorner('TL', kursi.kiri, data);
-  renderCorner('TR', kursi.atas, data);
-  renderCorner('BR', kursi.kanan, data);
-  renderCorner('BL', kursi.aku, data);
+  // 4 sudut tumpukan buang: kiri->TL, atas->TR, kanan->BR, aku->BL.
+  // HANYA sudut kiri (TL) yang boleh diambil - dialah giliran sebelum aku.
+  renderCorner('TL', kursi.kiri, data, true);
+  renderCorner('TR', kursi.atas, data, false);
+  renderCorner('BR', kursi.kanan, data, false);
+  renderCorner('BL', kursi.aku, data, false);
 
   // Deck tengah
   deckSisaText.textContent = data.sisaDeck;
