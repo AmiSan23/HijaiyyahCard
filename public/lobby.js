@@ -4,6 +4,7 @@ import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/1
 const firebaseConfig = {
   apiKey: "AIzaSyBfwN2QDz-MiwBEpt9tv9KXhDrNAaUE71c",
   authDomain: "hijaiyyahcard.firebaseapp.com",
+  databaseURL: "https://hijaiyyahcard-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hijaiyyahcard",
   storageBucket: "hijaiyyahcard.firebasestorage.app",
   messagingSenderId: "927126787805",

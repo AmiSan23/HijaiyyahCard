@@ -6,11 +6,13 @@ import { buatDeck, kocokDeck, cekCheckmate, kalkulasiSkorDetail } from './cards.
 const firebaseConfig = {
   apiKey: "AIzaSyBfwN2QDz-MiwBEpt9tv9KXhDrNAaUE71c",
   authDomain: "hijaiyyahcard.firebaseapp.com",
+  databaseURL: "https://hijaiyyahcard-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "hijaiyyahcard",
   storageBucket: "hijaiyyahcard.firebasestorage.app",
   messagingSenderId: "927126787805",
   appId: "1:927126787805:web:ace6f351c7918452abed34"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
