@@ -4,32 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobby - Kartu Hijaiyyah</title>
-  <link rel="stylesheet" href="style.css"> <!-- Bisa pakai CSS yang sama atau pisah -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body style="align-items: center; justify-content: center;">
+<body class="screen">
   
-  <icol class="score-panel" style="width: 350px; max-width: 90%;">
-    <h1 style="color: var(--turn-active); margin-bottom: 5px;">Kartu Hijaiyyah</h1>
-    <p style="margin-top: 0; color: #555;">Pilih Mode Permainan</p>
+  <icol class="lobby-card">
+    <h1 class="brand-title">Kartu Hijaiyyah</h1>
+    <p class="brand-subtitle">Pilih Mode Permainan</p>
 
-    <!-- Pilihan Mode Game -->
-    <select id="gameMode" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+    <select id="gameMode" class="input-field">
       <option value="checkmate">Checkmate 101</option>
-      <!-- Mode lain bisa ditambah di sini nanti -->
     </select>
 
-    <input type="text" id="inputNama" placeholder="Nama Kamu (Maks 10 huruf)" maxlength="10" style="width: 93%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+    <input type="text" id="inputNama" class="input-field" placeholder="Nama Kamu (Maks 10 huruf)" maxlength="10">
 
-    <irow style="gap: 10px; margin-bottom: 15px;">
-      <button id="btnBuat" class="action-btn btn-ambil" style="position: relative; transform: none; top: 0; left: 0; display: block; flex: 1;">Buat Room</button>
+    <irow class="btn-group mb-15">
+      <button id="btnBuat" class="btn-primary btn-full">Buat Room</button>
     </irow>
 
-    <irow style="gap: 10px;">
-      <input type="text" id="inputKode" placeholder="Kode 4 Digit" maxlength="4" style="flex: 1; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;">
-      <button id="btnGabung" class="action-btn btn-buang" style="position: relative; transform: none; top: 0; left: 0; display: block; flex: 1; background: var(--highlight-purple);">Gabung</button>
+    <irow class="btn-group">
+      <input type="text" id="inputKode" class="input-field code-input" placeholder="Kode 4 Digit" maxlength="4">
+      <button id="btnGabung" class="btn-primary btn-gabung">Gabung</button>
     </irow>
 
-    <p id="errorMsg" style="color: var(--btn-red); font-weight: bold; display: none; margin-top: 15px;">Error message</p>
+    <p id="errorMsg" class="error hidden">Error message</p>
   </icol>
 
   <script type="module" src="lobby.js"></script>
