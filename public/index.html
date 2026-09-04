@@ -1,128 +1,37 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-<title>Kartu Hijaiyyah</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lobby - Kartu Hijaiyyah</title>
+  <link rel="stylesheet" href="style.css"> <!-- Bisa pakai CSS yang sama atau pisah -->
 </head>
-<body>
+<body style="align-items: center; justify-content: center;">
+  
+  <icol class="score-panel" style="width: 350px; max-width: 90%;">
+    <h1 style="color: var(--turn-active); margin-bottom: 5px;">Kartu Hijaiyyah</h1>
+    <p style="margin-top: 0; color: #555;">Pilih Mode Permainan</p>
 
-  <main id="landing" class="screen">
-    <div class="brand">
-      <h1>Kartu Hijaiyyah</h1>
-      <p class="subtitle">Main kartu bareng, sambil kenalan sama huruf hijaiyyah</p>
-    </div>
+    <!-- Pilihan Mode Game -->
+    <select id="gameMode" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+      <option value="checkmate">Checkmate 101</option>
+      <!-- Mode lain bisa ditambah di sini nanti -->
+    </select>
 
-    <div class="card">
-      <label for="inputNama">Nama kamu</label>
-      <input type="text" id="inputNama" placeholder="Misal: Andy" maxlength="16" autocomplete="off" />
+    <input type="text" id="inputNama" placeholder="Nama Kamu (Maks 10 huruf)" maxlength="10" style="width: 93%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
 
-      <div class="tabs" role="tablist">
-        <button id="btnTabBuat" class="tab active" role="tab" aria-selected="true">Buat Room</button>
-        <button id="btnTabGabung" class="tab" role="tab" aria-selected="false">Gabung Room</button>
-      </div>
-
-      <div id="panelBuat" class="panel">
-        <button id="btnBuatRoom" class="btn-primary">Buat Room Baru</button>
-      </div>
-
-      <div id="panelGabung" class="panel hidden">
-        <input type="text" id="inputKode" placeholder="Kode room (4 digit)" maxlength="4" inputmode="numeric" autocomplete="off" />
-        <button id="btnGabungRoom" class="btn-primary">Gabung ke Room</button>
-      </div>
-
-      <p id="errorMsg" class="error hidden" role="alert"></p>
-    </div>
-  </main>
-
-  <main id="lobby" class="screen hidden">
-    <p class="lobby-label">Kode Room</p>
-    <div class="kode-besar" id="kodeBesar">----</div>
-    <p class="hint">Kasih tau kode ini ke temen-temen kamu</p>
-
-    <div class="card">
-      <p class="players-label">Pemain di room ini</p>
-      <ul class="player-list" id="playerList"></ul>
-    </div>
-
-    <button id="btnMulai" class="btn-primary hidden">Mulai Main</button>
-    <p id="waitingMsg" class="hint hidden">Menunggu host memulai permainan&hellip;</p>
-  </main>
-
-  <main id="meja" class="screen hidden">
-    <irow class="top-panel">
-      <icol class="panel-col">
-        <div>Room: <span id="infoRoomChip">----</span></div>
-        <div>Player:</div>
-        <ul id="playerStats"></ul>
-      </icol>
-      <icol class="panel-col border-left">
-        <div>Ronde: <span id="infoRoundChip">1</span></div>
-        <div class="mt-10">Ronde lalu:</div>
-        <div id="lastGameInfo">-</div>
-      </icol>
-      <icol class="panel-col border-left">
-        <div>Kartu terbuang: <span id="infoBuangChip">0</span></div>
-        <div>Sisa kartu: <span id="infoSisaChip">0</span></div>
-        <div class="mt-10">Giliran saat ini:</div>
-        <div id="giliranInfo">-</div>
-      </icol>
-      <icol class="panel-actions">
-        <button class="hidden btn-primary" id="btnRondeBerikutnya">Ronde Berikutnya</button>
-        <button class="hidden btn-danger" id="btnKembaliLobby">Keluar</button>
-      </icol>
+    <irow style="gap: 10px; margin-bottom: 15px;">
+      <button id="btnBuat" class="action-btn btn-ambil" style="position: relative; transform: none; top: 0; left: 0; display: block; flex: 1;">Buat Room</button>
     </irow>
 
-    <icol class="floor" id="floor">
-      <irow class="row3">
-        <div class="corner" id="cornerTL"><span class="corner-nama" id="cornerTLNama"></span><div class="discard-grid" id="cornerTLGrid"></div><button class="action-btn btn-ambil" id="cornerTLAmbil">Ambil</button></div>
-        <div class="seat seat-atas hidden" id="seatAtas"></div>
-        <div class="corner" id="cornerTR"><span class="corner-nama" id="cornerTRNama"></span><div class="discard-grid" id="cornerTRGrid"></div><button class="action-btn btn-ambil" id="cornerTRAmbil">Ambil</button></div>
-      </irow>
+    <irow style="gap: 10px;">
+      <input type="text" id="inputKode" placeholder="Kode 4 Digit" maxlength="4" style="flex: 1; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;">
+      <button id="btnGabung" class="action-btn btn-buang" style="position: relative; transform: none; top: 0; left: 0; display: block; flex: 1; background: var(--highlight-purple);">Gabung</button>
+    </irow>
 
-      <irow class="row3">
-        <div class="seat seat-kiri hidden" id="seatKiri"></div>
+    <p id="errorMsg" style="color: var(--btn-red); font-weight: bold; display: none; margin-top: 15px;">Error message</p>
+  </icol>
 
-        <div class="table">
-          <div class="pile pile-deck" id="deckPile">
-            <img id="drawPileImg" class="card-img" src="/img/back.png" alt="Tumpukan tertutup" />
-            <div class="card-overlay-text">Sisa<br><span id="deckSisaText">0</span></div>
-            <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
-          </div>
-          <div class="end-game-center hidden" id="endGameCenter">
-            <div class="win-text">WIN<br><span id="winnerName">-</span></div>
-            <p class="win-detail" id="winnerDetail"></p>
-          </div>
-        </div>
-
-        <div class="seat seat-kanan hidden" id="seatKanan"></div>
-      </irow>
-
-      <irow class="row3">
-        <div class="corner" id="cornerBL"><span class="corner-nama" id="cornerBLNama"></span><div class="discard-grid" id="cornerBLGrid"></div><button class="action-btn btn-ambil" id="cornerBLAmbil">Ambil</button></div>
-        <div class="empty"></div>
-        <div class="corner" id="cornerBR"><span class="corner-nama" id="cornerBRNama"></span><div class="discard-grid" id="cornerBRGrid"></div><button class="action-btn btn-ambil" id="cornerBRAmbil">Ambil</button></div>
-      </irow>
-    </icol>
-
-    <div class="my-hand-wrap">
-      <p class="players-label" id="myNameLabel">Tangan kamu</p>
-      <div class="my-hand" id="myHand"></div>
-    </div>
-
-    <div class="score-panel">
-      <div class="score-title">Kartu di tanganmu:</div>
-      <div class="score-detail" id="scoreCards">-</div>
-      <div class="score-title mt-10">Total nilai:</div>
-      <div class="score-total" id="scoreTotal">0</div>
-    </div>
-  </main>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/client.js"></script>
+  <script type="module" src="lobby.js"></script>
 </body>
 </html>

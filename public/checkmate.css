@@ -1,0 +1,281 @@
+/* style.css */
+:root {
+    --cream: #F4ECD8;
+    --paper: #FFFCF4;
+    --ink-dark: #4A2E14;
+    --ink-mid: #6B4423;
+    --ink-light: #8B5A2B;
+    --border: rgba(74, 46, 20, 0.22);
+  --bg-color: #ffffff;
+  --panel-bg: #e2e8ec;
+  --border-color: rgba(0, 0, 0, 0.4);
+  --turn-active: #4caf50;
+  --highlight-green: #32cd32;
+  --highlight-purple: #9c27b0;
+  --btn-red: #ff5252;
+  
+
+    --fathah: #378ADD;
+    --kasrah: #E0A82E;
+    --dhommah: #B24A24;
+    --sukun: #6B6A64;
+}
+
+body {
+  margin: 0;
+  width: 100vw;
+  font-family: sans-serif;
+  background-color: var(--cream);
+  color: #111;
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px; }
+
+grid {
+  display: grid;
+}
+irow {
+  display: flex;
+  flex-direction: row;
+}
+icol {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel Atas */
+.top-panel {
+  background: var(--panel-bg);
+  border-bottom: 2px solid var(--border-color);
+  padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    color: var(--ink-dark);
+    border-bottom: 2px solid var(--border-color);
+}
+.panel-col { flex: 1; padding: 0 15px; }
+.border-left { border-left: 2px solid black; }
+ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
+
+/* Area Permainan */
+.floor {
+  grid-template-columns: 20% 60% 20%;
+  position: static;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='none' stroke='%238B5A2B' stroke-width='1' opacity='0.16'%3E%3Crect x='10' y='10' width='28' height='28'/%3E%3Crect x='10' y='10' width='28' height='28' transform='rotate(45 24 24)'/%3E%3C/g%3E%3C/svg%3E");
+}
+.floor>grid {
+  grid-template-rows: 1fr 3fr 2fr;
+  justify-items: center;
+  align-items: center;
+}
+/* .floor:first-child{
+  height: 20%;
+}  */
+
+.empty {
+  width: 100%;
+}
+.col3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.row3 {
+  grid-template-rows: repeat(3, 1fr);
+  justify-items: center;
+  align-items: center;
+}
+.seat {
+  height: min-content;
+  width: min-content;
+  justify-content: center;
+  align-items: center;
+}
+.seat-C { padding-top: 4px; }
+.seat-A { padding-bottom: 4px; }
+.seat-D { transform: rotate(90deg) translateY(30px);}
+.seat-B { transform: rotate(-90deg) translateY(30px);}
+
+.seat .card-img {
+  width: 40px;
+  height: auto;
+  aspect-ratio: 310/437;
+}
+.seat-A .card-img {
+  width: 70px;
+}
+.seat-name {
+  background: gray;
+  color: black;
+  font-weight: bold;
+  padding: 5px 20px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  transition: background 0.3s;
+}
+.seat-name.active-turn { background: var(--turn-active); }
+.seat-name.inactive { background: gray; } /* Kembali abu saat tidak giliran[cite: 4] */
+
+/* Kartu & Fanning */
+.fanning-container { display: flex; align-items: center; justify-content: center; }
+.card-img {
+  aspect-ratio: 310/437;
+  border-radius: 2px;
+  border: 1px solid var(--border-color);
+  background: white;
+  /* margin-left: -55px; Overlap */
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+}
+.fanning-container > .card-img:first-child { margin-left: 0; }
+
+/* Interaksi Kartu (Border ungu aktif saat klik kartu sendiri[cite: 4]) */
+.my-cards .card-img:hover { transform: translateY(-10px); }
+.my-cards .card-img.selected {
+  border-color: var(--highlight-purple);
+  border-width: 4px;
+  transform: translateY(-15px);
+  z-index: 10;
+}
+
+/* Area Tengah */
+.table {
+  background:navajowhite;
+  height: min-content;
+  width: 100%;
+  aspect-ratio: 1/1;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  grid-template-columns: repeat(3, 1fr);
+}
+.pile {
+  aspect-ratio: 1/1;
+}
+.card-overlay-text {
+  font-weight: bold;
+  text-align: center;
+}
+.pile-deck {
+  width: 100%;
+  aspect-ratio: 1/1;
+  justify-content: center;
+  align-items: center;
+}
+.pile-deck .card-img {
+  width: 60px;
+  height: auto;
+  aspect-ratio: 310/437;
+}
+.pile-discard-A,
+.pile-discard-B,
+.pile-discard-C,
+.pile-discard-D {
+  justify-content: center;
+  align-items: center;
+}
+
+.openCardArea {
+  height: 100%;
+  width: 100%;
+  aspect-ratio: 1/1;
+  justify-content: center;
+  align-items: center;
+}
+#openAreaB {
+  transform: rotate(-90deg);
+}
+#openAreaD {
+  transform: rotate(90deg);
+}
+.openCardArea .card-img {
+  width: 30px;
+  height: auto;
+  aspect-ratio: 310/437;
+}
+/* Discard Grid (11 baris maksimal, lalu membuat dua baris[cite: 4]) */
+.discard-grid {
+  /* padding: 60px 0 0 60px; */
+  width: 100%;
+  height: 100%;
+  flex-wrap: wrap;
+}
+.discard-grid .card-img {
+  width: 26px;
+  height: min-content;
+  aspect-ratio: 310/437;
+  /* margin: -60px 0 0 -60px; */
+}
+
+/* Interaksi Tumpukan (Border hijau aktif saat giliran ambil[cite: 4]) */
+.pile.active-draw .card-img {
+  border-color: var(--highlight-green);
+  border-width: 4px;
+}
+.pile.active-draw { cursor: pointer; }
+
+/* Tombol Aksi */
+.action-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid black;
+  cursor: pointer;
+  display: none; /* Hidden by default */
+  z-index: 20;
+}
+.btn-ambil { background: var(--turn-active); color: black; }
+.btn-buang { background: var(--btn-red); color: white; }
+
+/* Munculkan tombol saat kondisi terpenuhi[cite: 4] */
+.pile.active-draw:hover .btn-ambil { display: block; }
+.my-cards .card-img.selected .btn-buang {
+  display: block; 
+  /* Membutuhkan elemen tombol ditaruh di dalam parent kartu via JS */
+}
+
+/* Panel Skor */
+.score-panel {
+  bottom: 20px; right: 20px;
+  background: var(--panel-bg);
+  aspect-ratio: 1/1;
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+.score-detail { font-weight: bold; color: #8B4513; }
+.score-total { font-size: 1.5rem; font-weight: bold; }
+
+/* End Game Overlay */
+.end-game-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+}
+.win-text {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--turn-active);
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 20px;
+}
+.end-actions button {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  margin: 0 10px;
+  cursor: pointer;
+  border: 2px solid black;
+  border-radius: 8px;
+  font-weight: bold;
+}
+.btn-primary { background: var(--panel-bg); }
+.btn-danger { background: var(--btn-red); color: white; }
