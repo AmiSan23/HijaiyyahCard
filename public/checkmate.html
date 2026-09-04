@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkmate 101 - Live</title>
-  <link rel="stylesheet" href="checkmate.css">
+  <title>Checkmate 101 - Kartu Hijaiyyah</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -13,10 +13,8 @@
   <irow class="top-panel">
     <icol class="panel-col">
       <div>Room: <span id="roomCode">####</span></div>
-      <div>Player:</div>
-      <ul id="playerStats">
-        <!-- Diisi dinamis oleh client.js -->
-      </ul>
+      <div>Pemain:</div>
+      <ul id="playerStats"></ul>
     </icol>
     <icol class="panel-col border-left">
       <div>Round: <span id="roundNum">1</span></div>
@@ -48,51 +46,49 @@
       <div class="empty"></div>
 
       <icol class="seat seat-D">
-        <div class="fanning-container opponent-cards" id="handDdd">
-          <!-- Kartu belakang lawan D disuntik di sini -->
+        <div class="fanning-container opponent-cards" id="handDdd"></div>
+        <div class="seat-name" id="nameD">-</div>
+        <div class="discard-wrapper" id="discardWrapperD">
+          <irow class="discard-grid" id="discardGridD"></irow>
+          <button class="action-btn btn-ambil" id="btnAmbilDiscardD">Ambil</button>
         </div>
-        <div class="seat-name" id="nameD">Pemain Kiri</div>
       </icol>
-      
+
       <div class="empty"></div>
     </grid>
-    
+
     <!-- Kolom Tengah -->
     <grid>
       <icol class="seat seat-C">
-        <div class="seat-name" id="nameC">Pemain Atas</div>
-        <div class="fanning-container opponent-cards" id="handCcc">
-          <!-- Kartu belakang lawan C disuntik di sini -->
+        <div class="seat-name" id="nameC">-</div>
+        <div class="fanning-container opponent-cards" id="handCcc"></div>
+        <div class="discard-wrapper" id="discardWrapperC">
+          <irow class="discard-grid" id="discardGridC"></irow>
+          <button class="action-btn btn-ambil" id="btnAmbilDiscardC">Ambil</button>
         </div>
       </icol>
-      
+
       <!-- Meja Tengah -->
       <grid class="table">
         <grid class="row3">
-          <icol class="pile pile-discard-C">
-            <irow class="discard-grid">
-              <!-- Kartu buangan C disuntik di sini -->
-            </irow>
-            <button class="action-btn btn-ambil">Ambil</button>
-          </icol>
+          <!-- Baris 1: discard pile C (kiri) | openAreaD | discard pile B (kanan) -->
+          <div class="discard-wrapper" id="discardWrapperC2">
+            <irow class="discard-grid" id="discardGridC2"></irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscardC2">Ambil</button>
+          </div>
 
-          <irow class="openCardArea" id="openAreaD">
-            <!-- Kartu Showdown D disuntik di sini -->
-          </irow>
-          
-          <icol class="pile pile-discard-B">
-            <irow class="discard-grid">
-              <!-- Kartu buangan B disuntik di sini -->
-            </irow>
-            <button class="action-btn btn-ambil">Ambil</button>
-          </icol>
+          <irow class="openCardArea" id="openAreaD"></irow>
+
+          <div class="discard-wrapper" id="discardWrapperB2">
+            <irow class="discard-grid" id="discardGridB2"></irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscardB2">Ambil</button>
+          </div>
         </grid>
-        
+
         <grid class="row3">
-          <irow class="openCardArea" id="openAreaC">
-            <!-- Kartu Showdown C disuntik di sini -->
-          </irow>
-          
+          <!-- Baris 2: openAreaC | deck | end game overlay | openAreaA -->
+          <irow class="openCardArea" id="openAreaC"></irow>
+
           <icol class="pile pile-deck" id="deckPile">
             <img src="img/back.png" class="card-img" alt="Deck" id="drawPileImg">
             <div class="card-overlay-text">Sisa<br><span id="deckSisa">0</span></div>
@@ -102,52 +98,45 @@
           <!-- End Game Overlay (Muncu saat selesai) -->
           <icol class="end-game-center hidden" id="endGameCenter">
             <div class="win-text">WIN<br><span id="winnerName">-</span></div>
+            <div id="endScores"></div>
           </icol>
-          
-          <irow class="openCardArea" id="openAreaA">
-            <!-- Kartu Showdown A disuntik di sini -->
-          </irow>
+
+          <irow class="openCardArea" id="openAreaA"></irow>
         </grid>
-        
+
         <grid class="row3">
-          <icol class="pile pile-discard-D">
-            <irow class="discard-grid">
-              <!-- Kartu buangan D disuntik di sini -->
-            </irow>
-            <button class="action-btn btn-ambil">Ambil</button>
-          </icol>
-          
-          <irow class="openCardArea" id="openAreaB">
-             <!-- Kartu Showdown B disuntik di sini -->
-          </irow>
-          
-          <icol class="pile pile-discard-A">
-            <irow class="discard-grid">
-              <!-- Kartu buangan A disuntik di sini -->
-            </irow>
-            <button class="action-btn btn-ambil">Ambil</button>
-          </icol>
+          <!-- Baris 3: discard pile D (kiri) | openAreaB | discard pile A (kanan) -->
+          <div class="discard-wrapper" id="discardWrapperD2">
+            <irow class="discard-grid" id="discardGridD2"></irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscardD2">Ambil</button>
+          </div>
+
+          <irow class="openCardArea" id="openAreaB"></irow>
+
+          <div class="discard-wrapper" id="discardWrapperA">
+            <irow class="discard-grid" id="discardGridA"></irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscardA">Ambil</button>
+          </div>
         </grid>
       </grid>
-      
+
       <icol class="seat seat-A">
-        <div class="fanning-container my-cards" id="myHand">
-          <!-- Kartu asli kamu disuntik di sini -->
-        </div>
+        <div class="fanning-container my-cards" id="myHand"></div>
         <div class="seat-name active-turn" id="nameA">Kamu</div>
       </icol>
-      
     </grid>
-    
+
     <!-- Kolom Kanan -->
     <grid>
       <div class="empty"></div>
 
       <icol class="seat seat-B">
-        <div class="fanning-container opponent-cards" id="handBbb">
-          <!-- Kartu belakang lawan B disuntik di sini -->
+        <div class="fanning-container opponent-cards" id="handBbb"></div>
+        <div class="seat-name" id="nameB">-</div>
+        <div class="discard-wrapper" id="discardWrapperB">
+          <irow class="discard-grid" id="discardGridB"></irow>
+          <button class="action-btn btn-ambil" id="btnAmbilDiscardB">Ambil</button>
         </div>
-        <div class="seat-name" id="nameB">Pemain Kanan</div>
       </icol>
 
       <icol class="score-panel">
@@ -159,8 +148,9 @@
       </icol>
     </grid>
   </grid>
-  
-  <!-- Wajib menggunakan type="module" agar bisa import cards.js -->
+
+  <!-- Firebase + Game Logic -->
   <script type="module" src="client.js"></script>
 </body>
+
 </html>

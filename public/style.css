@@ -1,3 +1,8 @@
+/* ============================================================
+   Kartu Hijaiyyah - Checkmate 101
+   Fully dynamic game board styles
+   ============================================================ */
+
 :root {
   --cream: #F4ECD8;
   --paper: #FFFCF4;
@@ -5,106 +10,464 @@
   --ink-mid: #6B4423;
   --ink-light: #8B5A2B;
   --border: rgba(74, 46, 20, 0.22);
-  --turn-active: #3B6D11;
-  --btn-red: #B24A24;
-  --highlight-purple: #7B4B9E;
+  --panel-bg: #e2e8ec;
+  --border-color: rgba(0, 0, 0, 0.4);
+  --turn-active: #4caf50;
+  --highlight-green: #32cd32;
+  --highlight-purple: #9c27b0;
+  --btn-red: #ff5252;
+  --fathah: #378ADD;
+  --kasrah: #E0A82E;
+  --dhommah: #B24A24;
+  --sukun: #6B6A64;
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background-color: var(--cream);
-  font-family: 'Inter', sans-serif;
-  color: var(--ink-dark);
+  width: 100vw;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--cream);
+  color: var(--ink-dark);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-/* Utility */
-.screen {
+/* ---- Utilities ---- */
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px; }
+
+/* Custom grid/flex tags */
+grid {
+  display: grid;
+}
+irow {
+  display: flex;
+  flex-direction: row;
+}
+icol {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   PANEL ATAS
+   ============================================================ */
+.top-panel {
+  background: var(--panel-bg);
+  border-bottom: 2px solid var(--border-color);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.panel-col {
+  flex: 1;
+  padding: 0 15px;
+  min-width: 120px;
+}
+.border-left { border-left: 2px solid var(--border-color); }
+ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
+ul li { margin: 2px 0; }
+
+/* ============================================================
+   AREA PERMAINAN (MEJA)
+   ============================================================ */
+.floor {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  grid-template-rows: 1fr;
+  background-color: var(--cream);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 30px,
+      rgba(139, 90, 43, 0.06) 30px,
+      rgba(139, 90, 43, 0.06) 31px
+    );
+  align-items: stretch;
+}
+
+.floor > grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 5px;
+}
+
+/* ---- Kursi Pemain ---- */
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.seat-C { padding-top: 8px; }
+.seat-A { padding-bottom: 8px; }
+.seat-D { transform: rotate(90deg) translateY(30px); }
+.seat-B { transform: rotate(-90deg) translateY(30px); }
+
+.seat-name {
+  background: #9e9e9e;
+  color: white;
+  font-weight: bold;
+  padding: 5px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+.seat-name.active-turn {
+  background: var(--turn-active);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+/* ---- Tangan (Fanning) ---- */
+.fanning-container {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.hidden { display: none !important; }
-irow { display: flex; flex-direction: row; }
-icol { display: flex; flex-direction: column; }
-.mb-15 { margin-bottom: 15px; }
-
-/* Lobby Card */
-.lobby-card {
-  width: 350px;
-  max-width: 90%;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 26px 20px;
-  text-align: center;
-  box-shadow: 0 6px 18px rgba(74, 46, 20, 0.08);
+  min-height: 60px;
 }
 
-.brand-title {
-  font-family: 'Amiri', serif;
-  font-size: 2.2rem;
-  color: var(--turn-active);
-  margin: 0 0 6px;
+.opponent-cards .card-img {
+  width: 38px;
+  aspect-ratio: 310/437;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  background: white;
+  margin-left: -30px;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.15);
+}
+.opponent-cards .card-img:first-child { margin-left: 0; }
+
+.my-cards {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.my-cards .card-img {
+  width: 68px;
+  aspect-ratio: 310/437;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background: white;
+  transition: transform 0.18s, border-color 0.18s;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.18);
 }
 
-.brand-subtitle {
-  color: var(--ink-mid);
-  margin: 0 0 20px;
-  font-size: 0.95rem;
+/* Card wrap untuk tombol buang */
+.card-wrap {
+  position: relative;
+  display: inline-block;
+}
+.card-wrap .action-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
+}
+.card-wrap.selected .action-btn {
+  pointer-events: auto;
 }
 
-/* Inputs & Buttons */
-.input-field {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 14px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
+/* Hover + selected states */
+.my-cards.pilihable .card-img:hover {
+  transform: translateY(-10px);
+  border-color: rgba(156, 39, 176, 0.5);
 }
-
-.code-input {
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  margin-bottom: 0;
-  flex: 1;
+.my-cards.pilihable .card-img.selected {
+  transform: translateY(-14px);
+  border-color: var(--highlight-purple);
+  border-width: 3px;
+  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.4);
+  z-index: 10;
 }
-
-.btn-group {
-  gap: 10px;
-  width: 100%;
-}
-
-.btn-primary {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: none;
-  background: var(--ink-dark);
-  color: var(--cream);
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
+.action-btn {
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 2px solid rgba(0,0,0,0.3);
   cursor: pointer;
-  transition: background 0.15s ease;
+  display: none;
+  white-space: nowrap;
+}
+.btn-buang {
+  background: var(--btn-red);
+  color: white;
+}
+.btn-ambil {
+  background: var(--turn-active);
+  color: white;
 }
 
-.btn-full { width: 100%; }
-.btn-gabung { background: var(--highlight-purple); }
-.btn-primary:hover { background: var(--ink-mid); }
-.btn-gabung:hover { background: #5c3578; }
-
-.btn-primary:disabled {
-  background: var(--border);
-  cursor: not-allowed;
+/* ============================================================
+   MEJA TENGAH
+   ============================================================ */
+.table {
+  background: navajowhite;
+  aspect-ratio: 1 / 1;
+  max-width: 520px;
+  max-height: 520px;
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 6px;
+  gap: 4px;
+  position: relative;
 }
 
-.error {
-  margin: 14px 0 0;
-  color: var(--btn-red);
-  font-size: 0.88rem;
-  font-weight: 700;
+.table > grid.row3 {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  align-items: center;
+  justify-items: center;
+}
+
+/* ---- Deck Pile ---- */
+.pile-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: default;
+}
+.pile-deck .card-img {
+  width: 55px;
+  aspect-ratio: 310/437;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.card-overlay-text {
+  position: absolute;
+  bottom: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--ink-dark);
+  line-height: 1.2;
+}
+.pile-deck .btn-ambil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  font-size: 0.9rem;
+}
+
+/* Deck aktif saat bisa diambil */
+.pile-deck.active-draw .card-img {
+  border-color: var(--highlight-green);
+  border-width: 3px;
+  box-shadow: 0 0 12px rgba(50, 205, 50, 0.5);
+}
+.pile-deck.active-draw { cursor: pointer; }
+.pile-deck.active-draw:hover .btn-ambil { display: block; }
+
+/* ---- Discard Wrapper (per pemain) ---- */
+.discard-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 50px;
+}
+.discard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 2px;
+}
+.discard-grid .card-img {
+  width: 22px;
+  aspect-ratio: 310/437;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.25);
+  background: white;
+}
+
+/* Discard aktif (bisa diambil) */
+.discard-wrapper.active-draw .card-img {
+  border-color: var(--highlight-green);
+  border-width: 2px;
+  box-shadow: 0 0 8px rgba(50, 205, 50, 0.5);
+}
+.discard-wrapper.active-draw .btn-ambil {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  font-size: 0.8rem;
+}
+.discard-wrapper.active-draw:hover .btn-ambil { display: block; }
+
+/* ---- Open Card Area (Showdown) ---- */
+.openCardArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+.openCardArea .card-img {
+  width: 26px;
+  aspect-ratio: 310/437;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: white;
+}
+
+/* Rotasi untuk open area di sisi */
+#openAreaB { transform: rotate(-90deg); }
+#openAreaD { transform: rotate(90deg); }
+
+/* ============================================================
+   PANEL SKOR (KANAN BAWAH)
+   ============================================================ */
+.score-panel {
+  background: var(--panel-bg);
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  text-align: center;
+  min-width: 130px;
+  align-self: flex-end;
+  margin-bottom: 10px;
+}
+.score-title {
+  font-size: 0.7rem;
+  color: var(--ink-mid);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.score-detail {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--ink-dark);
+  line-height: 1.4;
+}
+.score-calc {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin: 4px 0;
+}
+.score-total {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--ink-dark);
+}
+
+/* ============================================================
+   END GAME OVERLAY
+   ============================================================ */
+.end-game-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 252, 244, 0.96);
+  border: 3px solid var(--turn-active);
+  border-radius: 16px;
+  padding: 20px 28px;
+  text-align: center;
+  z-index: 100;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+.win-text {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--turn-active);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.win-text span {
+  display: block;
+  font-size: 1.4rem;
+  color: var(--ink-dark);
+  margin-top: 4px;
+}
+#endScores {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* Tombol di overlay */
+.end-game-center button {
+  margin-top: 12px;
+  margin-right: 8px;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.3);
+  cursor: pointer;
+  font-weight: bold;
+  font-family: inherit;
+}
+.btn-primary {
+  background: var(--panel-bg);
+  color: var(--ink-dark);
+}
+.btn-primary:hover { background: #d0d8de; }
+.btn-danger {
+  background: var(--btn-red);
+  color: white;
+}
+.btn-danger:hover { background: #e04545; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 700px) {
+  .floor {
+    grid-template-columns: 80px 1fr 100px;
+  }
+  .my-cards .card-img {
+    width: 50px;
+  }
+  .opponent-cards .card-img {
+    width: 28px;
+    margin-left: -22px;
+  }
+  .table {
+    max-width: 300px;
+    max-height: 300px;
+  }
+  .score-panel {
+    min-width: 90px;
+    padding: 8px;
+  }
+  .score-total { font-size: 1.2rem; }
+  .top-panel { font-size: 0.65rem; }
+  .openCardArea .card-img { width: 20px; }
+  .discard-grid .card-img { width: 16px; }
 }
