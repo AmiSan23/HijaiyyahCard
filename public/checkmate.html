@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkmate 101 - Kartu Hijaiyyah</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Checkmate 101 - Static</title>
+  <link rel="stylesheet" href="checkmate.css">
+  <!-- <link rel="stylesheet" href="style.css"> -->
 </head>
 
 <body>
@@ -13,21 +14,26 @@
   <irow class="top-panel">
     <icol class="panel-col">
       <div>Room: <span id="roomCode">####</span></div>
-      <div>Pemain:</div>
-      <ul id="playerStats"></ul>
+      <div>Player:</div>
+      <ul id="playerStats">
+        <li>Aaa | W: 1 L: 2</li>
+        <li>Bbb | W: 0 L: 1</li>
+        <li>Ccc | W: 2 L: 2</li>
+        <li>Ddd | W: 0 L: 2</li>
+      </ul>
     </icol>
     <icol class="panel-col border-left">
-      <div>Round: <span id="roundNum">1</span></div>
+      <div>Round: <span id="roundNum">11</span></div>
       <div class="mt-10">Last Game:</div>
-      <div id="lastGameInfo">-</div>
+      <div>Win: Aaa<br>Lose: Ccc</div>
     </icol>
     <icol class="panel-col border-left">
-      <div>Kartu terbuang: <span id="discardCount">0</span></div>
-      <div>Sisa kartu: <span id="deckCount">0</span></div>
+      <div>Kartu terbuang: <span id="discardCount">12</span></div>
+      <div>Sisa kartu: <span id="deckCount">88</span></div>
       <div class="mt-10">Giliran saat ini:</div>
       <div>
         <ul style="padding-left: 20px; margin: 0;">
-          <li><span id="currentTurnName">-</span></li>
+          <li><span id="currentTurnName">Aaa</span></li>
         </ul>
       </div>
     </icol>
@@ -38,119 +44,167 @@
     </icol>
   </irow>
 
-  <!-- Area Permainan (Meja) -->
   <grid class="floor" id="floor">
 
-    <!-- Kolom Kiri -->
     <grid>
       <div class="empty"></div>
 
       <icol class="seat seat-D">
-        <div class="fanning-container opponent-cards" id="handDdd"></div>
-        <div class="seat-name" id="nameD">-</div>
-        <div class="discard-wrapper" id="discardWrapperD">
-          <irow class="discard-grid" id="discardGridD"></irow>
-          <button class="action-btn btn-ambil" id="btnAmbilDiscardD">Ambil</button>
+        <div class="fanning-container opponent-cards" id="handDdd">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
         </div>
+        <div class="seat-name" id="nameD">Ddd</div>
       </icol>
-
+      
       <div class="empty"></div>
     </grid>
-
-    <!-- Kolom Tengah -->
+    
     <grid>
       <icol class="seat seat-C">
-        <div class="seat-name" id="nameC">-</div>
-        <div class="fanning-container opponent-cards" id="handCcc"></div>
-        <div class="discard-wrapper" id="discardWrapperC">
-          <irow class="discard-grid" id="discardGridC"></irow>
-          <button class="action-btn btn-ambil" id="btnAmbilDiscardC">Ambil</button>
+        <div class="seat-name" id="nameC">Ccc</div>
+        <div class="fanning-container opponent-cards" id="handCcc">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
         </div>
       </icol>
-
-      <!-- Meja Tengah -->
+      
       <grid class="table">
         <grid class="row3">
-          <!-- Baris 1: discard pile C (kiri) | openAreaD | discard pile B (kanan) -->
-          <div class="discard-wrapper" id="discardWrapperC2">
-            <irow class="discard-grid" id="discardGridC2"></irow>
-            <button class="action-btn btn-ambil" id="btnAmbilDiscardC2">Ambil</button>
-          </div>
+          <icol class="pile pile-discard-C">
+            <irow class="discard-grid" id="discardGrid">
+              <img src="img/Ft_Kho.png" class="card-img" alt="Kartu Terbuang">
+            </irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
+          </icol>
 
-          <irow class="openCardArea" id="openAreaD"></irow>
-
-          <div class="discard-wrapper" id="discardWrapperB2">
-            <irow class="discard-grid" id="discardGridB2"></irow>
-            <button class="action-btn btn-ambil" id="btnAmbilDiscardB2">Ambil</button>
-          </div>
+          <irow class="openCardArea" id="openAreaD">
+            <img src="img/Ft_1.png" class="card-img">
+            <img src="img/Ft_1.png" class="card-img">
+            <img src="img/Ft_1.png" class="card-img">
+            <img src="img/Ft_1.png" class="card-img">
+          </irow>
+          
+          <icol class="pile pile-discard-B">
+            <irow class="discard-grid" id="discardGrid">
+              <img src="img/Ks_Kho.png" class="card-img" alt="Kartu Terbuang">
+            </irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
+          </icol>
         </grid>
-
+        
         <grid class="row3">
-          <!-- Baris 2: openAreaC | deck | end game overlay | openAreaA -->
-          <irow class="openCardArea" id="openAreaC"></irow>
-
+          <irow class="openCardArea" id="openAreaC">
+            <img src="img/Sk_8.png" class="card-img">
+            <img src="img/Sk_8.png" class="card-img">
+            <img src="img/Sk_8.png" class="card-img">
+            <img src="img/Sk_8.png" class="card-img">
+          </irow>
+          
           <icol class="pile pile-deck" id="deckPile">
-            <img src="img/back.png" class="card-img" alt="Deck" id="drawPileImg">
-            <div class="card-overlay-text">Sisa<br><span id="deckSisa">0</span></div>
+            <img src="img/back.png" class="card-img" alt="Deck">
+            <div class="card-overlay-text">Sisa<br><span id="deckSisa">88</span></div>
             <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
           </icol>
-
-          <!-- End Game Overlay (Muncu saat selesai) -->
+          <!-- End Game Overlay (Muncul saat selesai[cite: 4]) -->
           <icol class="end-game-center hidden" id="endGameCenter">
-            <div class="win-text">WIN<br><span id="winnerName">-</span></div>
-            <div id="endScores"></div>
+            <div class="win-text">WIN<br><span id="winnerName">Aaa</span></div>
           </icol>
-
-          <irow class="openCardArea" id="openAreaA"></irow>
+          
+          <irow class="openCardArea" id="openAreaA">
+            <img src="img/Dm_10.png" class="card-img">
+            <img src="img/Dm_10.png" class="card-img">
+            <img src="img/Dm_10.png" class="card-img">
+            <img src="img/Dm_10.png" class="card-img">
+          </irow>
         </grid>
-
+        
         <grid class="row3">
-          <!-- Baris 3: discard pile D (kiri) | openAreaB | discard pile A (kanan) -->
-          <div class="discard-wrapper" id="discardWrapperD2">
-            <irow class="discard-grid" id="discardGridD2"></irow>
-            <button class="action-btn btn-ambil" id="btnAmbilDiscardD2">Ambil</button>
-          </div>
-
-          <irow class="openCardArea" id="openAreaB"></irow>
-
-          <div class="discard-wrapper" id="discardWrapperA">
-            <irow class="discard-grid" id="discardGridA"></irow>
-            <button class="action-btn btn-ambil" id="btnAmbilDiscardA">Ambil</button>
-          </div>
+          <icol class="pile pile-discard-D">
+            <irow class="discard-grid" id="discardGrid">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+            </irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
+          </icol>
+          
+          <irow class="openCardArea" id="openAreaB">
+            <img src="img/Ks_11.png" class="card-img">
+            <img src="img/Ks_11.png" class="card-img">
+            <img src="img/Ks_11.png" class="card-img">
+            <img src="img/Ks_11.png" class="card-img">
+          </irow>
+          
+          <icol class="pile pile-discard-A">
+            <irow class="discard-grid" id="discardGrid">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
+            </irow>
+            <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
+          </icol>
         </grid>
       </grid>
-
+      
       <icol class="seat seat-A">
-        <div class="fanning-container my-cards" id="myHand"></div>
-        <div class="seat-name active-turn" id="nameA">Kamu</div>
+        <div class="fanning-container my-cards" id="myHand">
+          <img src="img/Dm_As.png" class="card-img">
+          <img src="img/Dm_Kho.png" class="card-img">
+          <img src="img/Dm_25.png" class="card-img">
+          <img src="img/Dm_Qof.png" class="card-img">
+        </div>
+        <div class="seat-name active-turn" id="nameA">Aaa</div>
       </icol>
+      
     </grid>
-
-    <!-- Kolom Kanan -->
+    
     <grid>
       <div class="empty"></div>
 
       <icol class="seat seat-B">
-        <div class="fanning-container opponent-cards" id="handBbb"></div>
-        <div class="seat-name" id="nameB">-</div>
-        <div class="discard-wrapper" id="discardWrapperB">
-          <irow class="discard-grid" id="discardGridB"></irow>
-          <button class="action-btn btn-ambil" id="btnAmbilDiscardB">Ambil</button>
+        <div class="fanning-container opponent-cards" id="handBbb">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
+          <img src="img/back.png" class="card-img" alt="Kartu Lawan">
         </div>
+        <div class="seat-name" id="nameB">Bbb</div>
       </icol>
 
       <icol class="score-panel">
         <div class="score-title">Kartumu:</div>
-        <div class="score-detail" id="scoreCards">-</div>
-        <div class="score-calc" id="scoreCalc">-</div>
+        <div class="score-detail" id="scoreCards">U' | Khu | Huu | Kh</div>
+        <div class="score-calc" id="scoreCalc">26 + 25 + 25 - 25</div>
         <div class="score-title mt-10">Poinmu saat ini:</div>
-        <div class="score-total" id="scoreTotal">0</div>
+        <div class="score-total" id="scoreTotal">50</div>
       </icol>
     </grid>
   </grid>
-
-  <!-- Firebase + Game Logic -->
+  
   <script type="module" src="client.js"></script>
 </body>
+
 
 </html>
