@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkmate 101 - Kartu Hijaiyyah</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- ====================================================== -->
+  <!-- PANEL ATAS                                          -->
+  <!-- ====================================================== -->
+  <irow class="top-panel">
+    <icol class="panel-col">
+      <div>Room: <span id="roomCode">-</span></div>
+      <div>Pemain:</div>
+      <ul id="playerStats"></ul>
+    </icol>
+    <icol class="panel-col border-left">
+      <div>Round: <span id="roundNum">1</span></div>
+      <div class="mt-10">Last Game:</div>
+      <div id="lastGameInfo">-</div>
+    </icol>
+    <icol class="panel-col border-left">
+      <div>Kartu terbuang: <span id="discardCount">0</span></div>
+      <div>Sisa kartu: <span id="deckCount">0</span></div>
+      <div class="mt-10">Giliran saat ini:</div>
+      <div>
+        <ul style="padding-left:20px;margin:0">
+          <li><span id="currentTurnName">-</span></li>
+        </ul>
+      </div>
+    </icol>
+    <icol>
+      <button class="hidden btn-primary" id="btnMainLagiTop">Main Lagi</button>
+      <button class="hidden btn-danger" id="btnKeluarTop">Keluar</button>
+    </icol>
+  </irow>
+
+  <!-- ====================================================== -->
+  <!-- AREA PERMAINAN (MEJA)                                -->
+  <!-- ====================================================== -->
+  <grid class="floor" id="floor">
+
+    <!-- ---- Kolom Kiri: Player D ---- -->
+    <grid>
+      <div class="empty"></div>
+      <icol class="seat seat-D">
+        <div class="fanning-container opponent-cards" id="handDdd"></div>
+        <div class="seat-name" id="nameD">-</div>
+      </icol>
+      <div class="empty"></div>
+    </grid>
+
+    <!-- ---- Kolom Tengah ---- -->
+    <grid>
+
+      <!-- Player C (Atas) -->
+      <icol class="seat seat-C">
+        <div class="seat-name" id="nameC">-</div>
+        <div class="fanning-container opponent-cards" id="handCcc"></div>
+      </icol>
+
+      <!-- Meja Tengah -->
+      <grid class="table">
+        <!-- Row 1: discard-D | openAreaA | discard-B -->
+        <grid class="row3">
+          <div class="discard-wrapper" id="dwD">
+            <irow class="discard-grid" id="dgD"></irow>
+            <button class="action-btn btn-ambil" id="btnDwD" data-action="ambil-discard" style="display:none">Ambil</button>
+          </div>
+          <irow class="openCardArea" id="openAreaA"></irow>
+          <div class="discard-wrapper" id="dwB">
+            <irow class="discard-grid" id="dgB"></irow>
+            <button class="action-btn btn-ambil" id="btnDwB" data-action="ambil-discard" style="display:none">Ambil</button>
+          </div>
+        </grid>
+
+        <!-- Row 2: openAreaD | deck | openAreaC -->
+        <grid class="row3">
+          <irow class="openCardArea" id="openAreaD"></irow>
+          <icol class="pile pile-deck" id="deckPile">
+            <img src="/img/back.png" class="card-img" alt="Deck">
+            <div class="card-overlay-text">Sisa<br><span id="deckSisa">0</span></div>
+            <button class="action-btn btn-ambil" id="btnAmbilDeck" style="display:none">Ambil</button>
+          </icol>
+          <irow class="openCardArea" id="openAreaC"></irow>
+        </grid>
+
+        <!-- Row 3: discard-C | openAreaB | discard-A -->
+        <grid class="row3">
+          <div class="discard-wrapper" id="dwC">
+            <irow class="discard-grid" id="dgC"></irow>
+            <button class="action-btn btn-ambil" id="btnDwC" data-action="ambil-discard" style="display:none">Ambil</button>
+          </div>
+          <irow class="openCardArea" id="openAreaB"></irow>
+          <div class="discard-wrapper" id="dwA">
+            <irow class="discard-grid" id="dgA"></irow>
+            <button class="action-btn btn-ambil" id="btnDwA" data-action="ambil-discard" style="display:none">Ambil</button>
+          </div>
+        </grid>
+      </grid>
+
+      <!-- Player A (Bawah / Saya) -->
+      <icol class="seat seat-A">
+        <div class="fanning-container my-cards" id="myHand"></div>
+        <div class="seat-name active-turn" id="nameA">Kamu</div>
+      </icol>
+    </grid>
+
+    <!-- ---- Kolom Kanan: Player B + Skor ---- -->
+    <grid>
+      <div class="empty"></div>
+      <icol class="seat seat-B">
+        <div class="fanning-container opponent-cards" id="handBbb"></div>
+        <div class="seat-name" id="nameB">-</div>
+      </icol>
+      <icol class="score-panel">
+        <div class="score-title">Kartumu:</div>
+        <div class="score-detail" id="scoreCards">-</div>
+        <div class="score-calc" id="scoreCalc">-</div>
+        <div class="score-title mt-10">Poinmu saat ini:</div>
+        <div class="score-total" id="scoreTotal">0</div>
+      </icol>
+    </grid>
+  </grid>
+
+  <!-- ====================================================== -->
+  <!-- SHOWDOWN OVERLAY                                     -->
+  <!-- ====================================================== -->
+  <div id="showdownOverlay" class="hidden"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const roomCode = '<%= kode %>';
+    const myName = '<%= urlNama || "" %>';
+    const isHost = '<%= urlIsHost %>' === '1';
+
+    document.getElementById('roomCode').textContent = roomCode;
+    localStorage.setItem('playerName', myName);
+    localStorage.setItem('isHost', isHost ? 'true' : 'false');
+
+    // Mapping: pos → DOM IDs (discard di meja tengah)
+    const SEAT_NAME  = { A:'nameA', B:'nameB', C:'nameC', D:'nameD' };
+    const SEAT_HAND  = { B:'handBbb', C:'handCcc', D:'handDdd' };
+    const DISCARD_DW = { A:'dwA', B:'dwB', C:'dwC', D:'dwD' };
+    const DISCARD_DG = { A:'dgA', B:'dgB', C:'dgC', D:'dgD' };
+    const DISCARD_BTN= { A:'btnDwA', B:'btnDwB', C:'btnDwC', D:'btnDwD' };
+
+    // ====================================================== -->
+    // GAME STATE                                            -->
+    // ====================================================== -->
+    socket.on('game-state', (state) => {
+      document.getElementById('roundNum').textContent      = state.round;
+      document.getElementById('deckCount').textContent    = state.deckCount;
+      document.getElementById('deckSisa').textContent     = state.deckSisa;
+      document.getElementById('currentTurnName').textContent = state.currentTurnName;
+      document.getElementById('lastGameInfo').innerHTML   = state.lastGameHtml;
+      document.getElementById('playerStats').innerHTML    = state.playerStatsHtml;
+      document.getElementById('discardCount').textContent = state.discardCount;
+      document.getElementById('nameA').textContent        = state.myName;
+
+      ['A','B','C','D'].forEach(pos => {
+        const s = state.seats[pos];
+        if (!s) return;
+
+        const nameEl = document.getElementById(SEAT_NAME[pos]);
+        if (nameEl) { nameEl.textContent = s.nameHtml; nameEl.className = `seat-name ${s.activeClass}`; }
+
+        if (pos !== 'A' && SEAT_HAND[pos]) {
+          const handEl = document.getElementById(SEAT_HAND[pos]);
+          if (handEl) handEl.innerHTML = s.handHtml;
+        }
+
+        const dgEl = document.getElementById(DISCARD_DG[pos]);
+        if (dgEl) dgEl.innerHTML = s.discardHtml || '';
+
+        const dwEl = document.getElementById(DISCARD_DW[pos]);
+        if (dwEl) dwEl.className = `discard-wrapper ${s.aktifDraw || ''}`;
+
+        const btnEl = document.getElementById(DISCARD_BTN[pos]);
+        if (btnEl) btnEl.style.display = s.btnDisplay || 'none';
+      });
+
+      document.getElementById('myHand').innerHTML = state.tanganSayaHtml || '';
+      document.getElementById('deckPile').className = `pile pile-deck ${state.deckActive || ''}`;
+      document.getElementById('btnAmbilDeck').style.display = state.deckBtnDisplay || 'none';
+      document.getElementById('scoreCards').innerHTML = state.scoreCardsHtml || '-';
+      document.getElementById('scoreCalc').innerHTML  = state.scoreCalcHtml  || '-';
+      document.getElementById('scoreTotal').textContent = state.scoreTotal;
+      document.getElementById('scoreTotal').style.color = state.scoreTotalColor;
+
+      const overlay = document.getElementById('showdownOverlay');
+      if (state.showdownHtml) {
+        overlay.innerHTML = state.showdownHtml;
+        overlay.classList.remove('hidden');
+        bindShowdown();
+      } else {
+        overlay.classList.add('hidden');
+      }
+    });
+
+    // ====================================================== -->
+    // AMBIL DARI DECK                                       -->
+    // ====================================================== -->
+    document.getElementById('deckPile').addEventListener('click', (e) => {
+      if (e.target.closest('.card-img') || e.target.closest('#btnAmbilDeck')) {
+        socket.emit('ambil-kartu', { sumber: 'deck' });
+      }
+    });
+
+    // ====================================================== -->
+    // AMBIL DARI DISCARD (delegated)                       -->
+    // ====================================================== -->
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="ambil-discard"]')) {
+        socket.emit('ambil-kartu', { sumber: 'buang' });
+      }
+    });
+
+    // ====================================================== -->
+    // BUANG KARTU                                          -->
+    // ====================================================== -->
+    document.getElementById('myHand').addEventListener('click', (e) => {
+      const wrap = e.target.closest('.card-wrap');
+      if (!wrap) return;
+
+      if (e.target.closest('.btn-buang')) {
+        const idx = parseInt(wrap.dataset.idx);
+        socket.emit('buang-kartu', { cardIdx: idx });
+        return;
+      }
+
+      if (e.target.closest('.card-img') && wrap.classList.contains('pilihable')) {
+        document.querySelectorAll('#myHand .card-wrap').forEach(w => w.classList.remove('selected'));
+        wrap.classList.add('selected');
+        document.querySelectorAll('#myHand .btn-buang').forEach(b => b.style.display = 'none');
+        const btn = wrap.querySelector('.btn-buang');
+        if (btn) btn.style.display = 'block';
+      }
+    });
+
+    // ====================================================== -->
+    // SHOWDOWN                                             -->
+    // ====================================================== -->
+    function bindShowdown() {
+      const btnMain = document.getElementById('btnMainLagi');
+      const btnOut  = document.getElementById('btnKeluar');
+      if (btnMain) {
+        btnMain.classList.toggle('hidden', !isHost);
+        btnMain.addEventListener('click', () => socket.emit('ronde-berikutnya'));
+      }
+      if (btnOut) {
+        btnOut.classList.remove('hidden');
+        btnOut.addEventListener('click', () => window.location.href = '/');
+      }
+    }
+
+    socket.on('permainan-selesai', (data) => {
+      console.log('Permainan selesai:', data.alasan, '| Pemenang:', data.pemenang);
+    });
+  </script>
+</body>
+</html>

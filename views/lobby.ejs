@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kartu Hijaiyyah - Lobby</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="screen">
+
+  <div class="lobby-card" id="lobbyCard">
+    <h1 class="brand-title">Kartu Hijaiyyah</h1>
+    <p class="brand-subtitle">Pilih Mode Permainan</p>
+
+    <select id="gameMode" class="input-field">
+      <option value="checkmate">Checkmate 101</option>
+    </select>
+
+    <input type="text" id="inputNama" class="input-field" placeholder="Nama Kamu (Maks 16 huruf)" maxlength="16">
+
+    <div id="buatSection">
+      <button id="btnBuat" class="btn-primary btn-full">Buat Room</button>
+    </div>
+
+    <div id="gabungSection" class="mt-15">
+      <input type="text" id="inputKode" class="input-field code-input" placeholder="Kode 4 Digit" maxlength="4">
+      <button id="btnGabung" class="btn-primary btn-full btn-gabung">Gabung</button>
+    </div>
+
+    <p id="errorMsg" class="error hidden"></p>
+  </div>
+
+  <!-- Lobby Room View (muncul setelah buat/gabung room) -->
+  <div class="lobby-card hidden" id="roomView">
+    <h1 class="brand-title" style="font-size:1.5rem">Room: <span id="roomCodeDisplay">-</span></h1>
+    <p class="brand-subtitle">Tunggu pemain lain bergabung...</p>
+
+    <div class="room-info-box">
+      <div class="score-title">Pemain (<span id="playerCount">0</span>/4):</div>
+      <ul id="playerListLobby" class="player-list"></ul>
+    </div>
+
+    <div id="hostActions" class="hidden mt-15">
+      <button id="btnMulai" class="btn-primary btn-full" disabled>
+        Mulai Game (<span id="btnMulaiCount">0</span>/2 min)
+      </button>
+    </div>
+
+    <p class="info-text">Bagikan kode room ke teman: <b id="shareCode">-</b></p>
+    <button id="btnKeluarRoom" class="btn-text">Keluar Room</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // ---- Elements ----
+    const lobbyCard = document.getElementById('lobbyCard');
+    const roomView = document.getElementById('roomView');
+    const buatSection = document.getElementById('buatSection');
+    const gabungSection = document.getElementById('gabungSection');
+    const errorMsg = document.getElementById('errorMsg');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const playerListLobby = document.getElementById('playerListLobby');
+    const playerCount = document.getElementById('playerCount');
+    const shareCode = document.getElementById('shareCode');
+    const hostActions = document.getElementById('hostActions');
+    const btnMulai = document.getElementById('btnMulai');
+    const btnMulaiCount = document.getElementById('btnMulaiCount');
+    const btnKeluarRoom = document.getElementById('btnKeluarRoom');
+
+    let currentRoomCode = null;
+    let isHost = false;
+    let myName = '';
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+      setTimeout(() => errorMsg.classList.add('hidden'), 4000);
+    }
+
+    // ---- BUAT ROOM ----
+    document.getElementById('btnBuat').addEventListener('click', () => {
+      const nama = document.getElementById('inputNama').value.trim();
+      if (!nama) return showError('Isi nama kamu dulu!');
+      myName = nama;
+      socket.emit('buat-room', { nama });
+      buatSection.innerHTML = '<p class="info-text">Membuat room...</p>';
+    });
+
+    // ---- GABUNG ROOM ----
+    document.getElementById('btnGabung').addEventListener('click', () => {
+      const nama = document.getElementById('inputNama').value.trim();
+      const kode = document.getElementById('inputKode').value.trim();
+      if (!nama) return showError('Isi nama kamu dulu!');
+      if (kode.length !== 4) return showError('Kode room harus 4 digit!');
+      myName = nama;
+      socket.emit('gabung-room', { kode, nama });
+    });
+
+    // ---- SOCKET: ROOM DIBUAT ----
+    socket.on('lobby-state', (data) => {
+      currentRoomCode = data.kode;
+      isHost = data.isHost;
+      myName = data.myName;
+      localStorage.setItem('playerName', myName);
+      localStorage.setItem('isHost', isHost ? 'true' : 'false');
+
+      lobbyCard.classList.add('hidden');
+      roomView.classList.remove('hidden');
+      roomCodeDisplay.textContent = data.kode;
+      shareCode.textContent = data.kode;
+      playerListLobby.innerHTML = data.playersHtml;
+      playerCount.textContent = 1;
+      hostActions.classList.toggle('hidden', !isHost);
+      btnMulaiCount.textContent = 1;
+      btnMulai.disabled = true;
+    });
+
+    // ---- SOCKET: BERHASIL GABUNG ----
+    socket.on('lobby-joined', (data) => {
+      currentRoomCode = data.kode;
+      isHost = data.isHost;
+      myName = data.myName;
+      localStorage.setItem('playerName', myName);
+      localStorage.setItem('isHost', isHost ? 'true' : 'false');
+
+      lobbyCard.classList.add('hidden');
+      roomView.classList.remove('hidden');
+      roomCodeDisplay.textContent = data.kode;
+      shareCode.textContent = data.kode;
+      playerListLobby.innerHTML = data.playersHtml;
+      playerCount.textContent = 1;
+      hostActions.classList.add('hidden');
+    });
+
+    // ---- SOCKET: UPDATE PEMAIN ----
+    socket.on('lobby-update', (data) => {
+      playerListLobby.innerHTML = data.playersHtml;
+      const count = playerListLobby.querySelectorAll('li').length;
+      playerCount.textContent = count;
+      btnMulaiCount.textContent = count;
+      btnMulai.disabled = count < 2;
+    });
+
+    // ---- SOCKET: ERROR ----
+    socket.on('error', (msg) => showError(msg));
+
+    // ---- SOCKET: GAME START ----
+    socket.on('game-mulai', () => {
+      window.location.href = `/game/${currentRoomCode}?nama=${encodeURIComponent(myName)}&host=${isHost ? 1 : 0}`;
+    });
+
+    // ---- MULAI GAME (HOST) ----
+    btnMulai.addEventListener('click', () => {
+      socket.emit('mulai-game');
+    });
+
+    // ---- KELUAR ROOM ----
+    btnKeluarRoom.addEventListener('click', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

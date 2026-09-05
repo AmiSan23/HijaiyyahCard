@@ -1,384 +1,423 @@
+// ============================================================
+// Kartu Hijaiyyah - Server (Socket.io + EJS)
+// Server-rendered: server kirim HTML/state, client update DOM
+// ============================================================
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-const { buatDeck, kocokDeck, cekCheckmate, hitungSkor } = require('./cards');
+const { buatDeck, kocokDeck, cekCheckmate, kalkulasiSkorDetail } = require('./cards');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-process.on('uncaughtException', (err) => {
-  console.error('[uncaughtException] Server tetap jalan, tapi ada error:', err);
-});
-process.on('unhandledRejection', (err) => {
-  console.error('[unhandledRejection] Server tetap jalan, tapi ada error:', err);
-});
-
+// ---- EJS Setup ----
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Semua room aktif disimpan di memori server.
-const rooms = {};
+// ---- Error handlers ----
+process.on('uncaughtException', (err) => console.error('[uncaughtException]', err.message));
+process.on('unhandledRejection', (err) => console.error('[unhandledRejection]', err.message));
 
+// ============================================================
+// DATA STRUCTURES
+// ============================================================
+const rooms = {};
 const MAKS_PEMAIN = 4;
 const MIN_PEMAIN = 2;
 
 function buatKodeRoom() {
   let kode;
-  do {
-    kode = Math.floor(1000 + Math.random() * 9000).toString();
-  } while (rooms[kode]);
+  do { kode = Math.floor(1000 + Math.random() * 9000).toString(); }
+  while (rooms[kode]);
   return kode;
 }
 
-function ringkasanRoom(kode) {
-  const room = rooms[kode];
-  if (!room) return null;
-  return { kode, players: room.players, hostId: room.hostId };
-}
-
 function pastikanStat(room, playerId) {
-  if (!room.stats[playerId]) {
-    room.stats[playerId] = { menang: 0, kalah: 0 };
-  }
+  if (!room.stats[playerId]) room.stats[playerId] = { w: 0, l: 0 };
 }
 
-// Mulai ronde baru: kocok deck, bagi 4 kartu/pemain.
-// Tumpukan buang sekarang PER PEMAIN (bukan 1 bersama), mulai kosong semua.
+function totalKartuTerbuang(room) {
+  return Object.values(room.game.discards).reduce((t, arr) => t + arr.length, 0);
+}
+
+// ============================================================
+// HTML RENDER HELPERS
+// ============================================================
+
+function playerListHtml(room) {
+  return room.players.map(p => {
+    pastikanStat(room, p.id);
+    const s = room.stats[p.id];
+    return `<li>${p.nama} | W: ${s.w} L: ${s.l}</li>`;
+  }).join('');
+}
+
+function handOppHtml(jml) {
+  if (!jml) return '';
+  return Array(jml).fill('<img src="/img/back.png" class="card-img">').join('');
+}
+
+function discardGridHtml(discards) {
+  if (!discards || discards.length === 0) return '';
+  return discards.map(k => `<img src="/img/${k.file}" class="card-img">`).join('');
+}
+
+function handSayaHtml(hand, giliranSaya, selectedIdx) {
+  if (!hand || hand.length === 0) return '';
+  const bolehBuang = giliranSaya && hand.length === 5;
+  return hand.map((k, i) => {
+    const sel = i === selectedIdx ? 'selected' : '';
+    const pick = bolehBuang ? 'pilihable' : '';
+    const btnShow = (bolehBuang && i === selectedIdx) ? 'block' : 'none';
+    return `<div class="card-wrap ${pick} ${sel}" data-idx="${i}">
+      <img src="/img/${k.file}" class="card-img" alt="${k.nama}">
+      <button class="action-btn btn-buang" style="display:${btnShow}">Buang</button>
+    </div>`;
+  }).join('');
+}
+
+function skorHtml(hand) {
+  if (!hand || hand.length === 0) return { cards: '-', calc: '-', total: 0, color: 'var(--ink-dark)' };
+  const sk = kalkulasiSkorDetail(hand);
+  const cards = sk.rincian.map(k =>
+    `<span style="color:${k.isMain ? k.warna : 'var(--btn-red)'};font-weight:bold">${k.label}</span>`
+  ).join(' | ');
+  const calc = sk.rincian.map((k, i) => {
+    const op = i === 0 ? '' : (k.isMain ? '+' : '-');
+    return `<span style="color:${k.isMain ? k.warna : 'var(--btn-red)'}">${op}${k.nilaiAbsolut}</span>`;
+  }).join(' ');
+  return { cards, calc, total: sk.total, color: sk.total < 0 ? 'var(--btn-red)' : 'var(--ink-dark)' };
+}
+
+function buildGameState(room, myId, selectedIdx = null) {
+  if (!room || !room.game) return {};
+  const game = room.game;
+  const turnOrder = game.turnOrder;
+  const turnIdx = game.turnIndex;
+  const giliranId = turnOrder[turnIdx];
+  const giliranSaya = giliranId === myId;
+  const tanganSaya = game.hands[myId] || [];
+  const discardsSaya = game.discards[myId] || [];
+
+  // Mapping kursi: saya selalu A, berlawanan jarum jam
+  const myIdx = turnOrder.indexOf(myId);
+  const mapping = {};
+  ['A','B','C','D'].forEach((pos, i) => { mapping[pos] = turnOrder[(myIdx + i) % 4]; });
+
+  // Prev player (kiri saya = boleh ambil discard)
+  const prevIdx = (turnIdx - 1 + turnOrder.length) % turnOrder.length;
+  const prevId = turnOrder[prevIdx];
+
+  // Build seats
+  const seats = {};
+  ['A','B','C','D'].forEach(pos => {
+    const nama = mapping[pos];
+    const discards = game.discards[nama] || [];
+    const isMyTurn = giliranId === nama;
+    const hand = game.hands[nama] || [];
+    const jml = hand.length;
+
+    // Boleh ambil?
+    const bolehAmbil = giliranSaya && tanganSaya.length === 4 && nama === prevId && discards.length > 0;
+
+    // Showdown: tampilkan kartu semua pemain
+    const isEnded = game.status === 'ended';
+    const showdownHand = isEnded ? hand : null;
+
+    seats[pos] = {
+      nameHtml:    nama,
+      activeClass: isMyTurn ? 'active-turn' : '',
+      handHtml:    pos === 'A' ? '' : handOppHtml(jml),
+      discardHtml: discardGridHtml(showdownHand || discards),
+      aktifDraw:   bolehAmbil ? 'active-draw' : '',
+      btnDisplay:  bolehAmbil ? 'block' : 'none',
+    };
+  });
+
+  const deckCount = game.deck ? game.deck.length : 0;
+  const bolehAmbilDeck = giliranSaya && tanganSaya.length === 4 && deckCount > 0;
+  const lastGameHtml = room.lastGame
+    ? `Win: ${room.lastGame.menang}<br>Lose: ${room.lastGame.kalah}`
+    : '-';
+
+  const sk = skorHtml(tanganSaya);
+
+  // Showdown overlay
+  let showdownHtml = '';
+  if (game.status === 'ended') {
+    const semuaSkor = turnOrder.map(nama => ({
+      nama,
+      skor: kalkulasiSkorDetail(game.hands[nama] || []).total
+    })).sort((a, b) => b.skor - a.skor);
+
+    const hostId = room.hostId;
+    const amIHost = myId === hostId;
+
+    showdownHtml = `<div id="endGameCenter">
+      <div class="win-text">WIN<br><span>${room.lastGame?.menang || '-'}</span></div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+        ${semuaSkor.map(s => `<div style="font-size:1rem;margin:4px 0">${s.nama}: <b>${s.skor}</b></div>`).join('')}
+      </div>
+      <button class="btn-primary" id="btnMainLagi" ${amIHost ? '' : 'disabled'}>Main Lagi</button>
+      <button class="btn-danger" id="btnKeluar">Keluar</button>
+    </div>`;
+  }
+
+  return {
+    roomCode:        room.kode,
+    round:           room.roundNumber || 1,
+    deckCount,
+    deckSisa:        deckCount,
+    discardCount:    totalKartuTerbuang(room),
+    playerStatsHtml:  playerListHtml(room),
+    currentTurnName: giliranId,
+    lastGameHtml,
+    seats,
+    tanganSayaHtml:  handSayaHtml(tanganSaya, giliranSaya, selectedIdx),
+    deckActive:      bolehAmbilDeck ? 'active-draw' : '',
+    deckBtnDisplay:  bolehAmbilDeck ? 'block' : 'none',
+    scoreCardsHtml:  sk.cards,
+    scoreCalcHtml:   sk.calc,
+    scoreTotal:      sk.total,
+    scoreTotalColor: sk.color,
+    showdownHtml,
+    myName:          room.players.find(p => p.id === myId)?.nama || '-',
+  };
+}
+
+function emitGameState(kode, myId, selectedIdx = null) {
+  const room = rooms[kode];
+  if (!room) return;
+  room.players.forEach(p => {
+    const sock = io.sockets.sockets.get(p.id);
+    if (!sock) return;
+    sock.emit('game-state', buildGameState(room, p.id, selectedIdx));
+  });
+}
+
+// ============================================================
+// ROUTES
+// ============================================================
+app.get('/', (req, res) => { res.render('lobby', { error: null }); });
+
+app.get('/game/:kode', (req, res) => {
+  const kode = req.params.kode;
+  const room = rooms[kode];
+  if (!room) return res.redirect('/?error=Room+tidak+ditemukan');
+  res.render('game', {
+    kode,
+    roomSummary: room,
+    urlNama:  req.query.nama  || '',
+    urlIsHost: req.query.host === '1',
+  });
+});
+
+// ============================================================
+// GAME LOGIC
+// ============================================================
+
 function mulaiRondeBaru(kode) {
   const room = rooms[kode];
   if (!room) return;
-
   const deck = kocokDeck(buatDeck());
-  const hands = {};
-  const discards = {};
-  room.players.forEach((p) => {
-    hands[p.id] = deck.splice(0, 4);
-    discards[p.id] = [];
-  });
-
+  const hands = {}, discards = {};
+  room.players.forEach(p => { hands[p.id] = deck.splice(0, 4); discards[p.id] = []; });
   room.roundNumber = (room.roundNumber || 0) + 1;
   room.game = {
-    deck,
-    discards,
-    hands,
-    turnOrder: room.players.map((p) => p.id),
+    deck, discards, hands,
+    turnOrder: room.players.map(p => p.id),
     turnIndex: 0,
     status: 'bermain',
   };
+  room.lastGame = null;
 }
 
-// Catat menang/kalah 1 ronde: satu pemenang, sisanya dianggap kalah.
-function catatHasilRonde(room, idPemenang, namaPemenang) {
-  room.players.forEach((p) => {
+function catatHasil(room, idPemenang, namaPemenang) {
+  room.players.forEach(p => {
     pastikanStat(room, p.id);
-    if (p.id === idPemenang) room.stats[p.id].menang += 1;
-    else room.stats[p.id].kalah += 1;
+    if (p.id === idPemenang) room.stats[p.id].w++;
+    else room.stats[p.id].l++;
   });
   room.lastGame = {
     menang: namaPemenang,
-    kalah: room.players.filter((p) => p.id !== idPemenang).map((p) => p.nama),
+    kalah: room.players.filter(p => p.id !== idPemenang).map(p => p.nama),
   };
 }
 
-function totalKartuTerbuang(game) {
-  return Object.values(game.discards).reduce((total, arr) => total + arr.length, 0);
-}
-
-// Kirim state permainan: data umum (giliran, SEMUA tumpukan buang per pemain,
-// sisa deck, jumlah kartu tiap pemain) ke semua orang, plus tangan pribadi.
-function kirimGameState(kode) {
-  const room = rooms[kode];
-  if (!room || !room.game) return;
-  const game = room.game;
-
-  const giliranId = game.turnOrder[game.turnIndex];
-
-  const tabelUmum = {
-    giliranId,
-    sisaDeck: game.deck.length,
-    kartuTerbuang: totalKartuTerbuang(game),
-    roundNumber: room.roundNumber || 1,
-    lastGame: room.lastGame || null,
-    discards: game.discards,
-    pemain: room.players.map((p) => {
-      pastikanStat(room, p.id);
-      return {
-        id: p.id,
-        nama: p.nama,
-        jumlahKartu: game.hands[p.id] ? game.hands[p.id].length : 0,
-        menang: room.stats[p.id].menang,
-        kalah: room.stats[p.id].kalah,
-      };
-    }),
-  };
-
-  room.players.forEach((p) => {
-    const s = io.sockets.sockets.get(p.id);
-    if (!s) {
-      console.log(`[kirimGameState] socket ${p.id} (${p.nama}) TIDAK ketemu - kemungkinan udah disconnect`);
-      return;
-    }
-    s.emit('game-state', {
-      ...tabelUmum,
-      tanganSaya: game.hands[p.id] || [],
-    });
-  });
-}
-
-// Dipakai di akhir ronde (checkmate ATAU deck habis) - hitung skor SEMUA
-// pemain (jumlah polos, lihat cards.js) biar bisa ditampilkan semua di showdown.
-function hitungSemuaSkor(room, game) {
-  return room.players.map((p) => ({
-    id: p.id,
-    nama: p.nama,
-    skor: hitungSkor(game.hands[p.id]),
-  }));
-}
-
-function selesaikanKarenaDeckHabis(kode) {
+function selesaikanDeckHabis(kode) {
   const room = rooms[kode];
   if (!room || !room.game) return;
   const game = room.game;
   game.status = 'selesai';
 
-  const semuaSkor = hitungSemuaSkor(room, game);
-  let terbaik = semuaSkor[0];
-  semuaSkor.forEach((s) => {
-    if (s.skor > terbaik.skor) terbaik = s;
+  let terbaik = null, skorTertinggi = -9999;
+  room.players.forEach(p => {
+    const sk = kalkulasiSkorDetail(game.hands[p.id] || []).total;
+    if (sk > skorTertinggi) { skorTertinggi = sk; terbaik = p; }
   });
-
-  if (terbaik) {
-    catatHasilRonde(room, terbaik.id, terbaik.nama);
-  }
-
-  kirimGameState(kode);
-  io.to(kode).emit('permainan-selesai', {
-    alasan: 'deck-habis',
-    pemenang: terbaik ? terbaik.nama : '-',
-    semuaSkor,
-    semuaTangan: room.players.map((p) => ({ id: p.id, nama: p.nama, hand: game.hands[p.id] })),
-  });
+  if (terbaik) catatHasil(room, terbaik.id, terbaik.nama);
+  emitGameState(kode, null);
+  io.to(kode).emit('permainan-selesai', { alasan: 'deck-habis', pemenang: terbaik?.nama || '-' });
 }
 
+// ============================================================
+// SOCKET.IO
+// ============================================================
 io.on('connection', (socket) => {
-  console.log(`[konek] socket ${socket.id} terhubung`);
+  console.log(`[konek] ${socket.id}`);
 
-  socket.on('buat-room', (nama) => {
-    const namaBersih = (nama || 'Pemain').toString().trim().slice(0, 16) || 'Pemain';
+  // ---- BUAT ROOM ----
+  socket.on('buat-room', ({ nama }) => {
+    const namaBersih = (nama || 'Pemain').trim().slice(0, 16) || 'Pemain';
     const kode = buatKodeRoom();
-
     rooms[kode] = {
-      hostId: socket.id,
-      players: [{ id: socket.id, nama: namaBersih }],
-      game: null,
-      roundNumber: 0,
-      stats: { [socket.id]: { menang: 0, kalah: 0 } },
+      kode, hostId: socket.id,
+      players: [{ id: socket.id, nama: namaBersih, isHost: true }],
+      game: null, roundNumber: 0,
+      stats: { [socket.id]: { w: 0, l: 0 } },
       lastGame: null,
     };
-
     socket.join(kode);
-    socket.data.kode = kode;
-
-    socket.emit('room-dibuat', ringkasanRoom(kode));
+    socket.data = { kode, nama: namaBersih };
+    const playersHtml = roomPlayersHtml(rooms[kode]);
+    socket.emit('lobby-state', { kode, playersHtml, isHost: true, myName: namaBersih });
     console.log(`[buat-room] ${namaBersih} bikin room ${kode}`);
   });
 
+  // ---- GABUNG ROOM ----
   socket.on('gabung-room', ({ kode, nama }) => {
-    const kodeBersih = (kode || '').toString().trim();
-    const namaBersih = (nama || 'Pemain').toString().trim().slice(0, 16) || 'Pemain';
-    const room = rooms[kodeBersih];
-    console.log(`[gabung-room] ${namaBersih} coba gabung ke room ${kodeBersih}`);
-
-    if (!room) {
-      console.log(`[gabung-room] GAGAL: room ${kodeBersih} tidak ditemukan`);
-      socket.emit('gagal-gabung', 'Kode room nggak ditemukan. Coba cek lagi kodenya.');
-      return;
-    }
-    if (room.game) {
-      console.log(`[gabung-room] GAGAL: room ${kodeBersih} udah mulai main`);
-      socket.emit('gagal-gabung', 'Room ini udah mulai main, nggak bisa gabung di tengah jalan.');
-      return;
-    }
-    if (room.players.length >= MAKS_PEMAIN) {
-      console.log(`[gabung-room] GAGAL: room ${kodeBersih} udah penuh`);
-      socket.emit('gagal-gabung', `Room udah penuh (maks ${MAKS_PEMAIN} pemain).`);
-      return;
-    }
-
-    room.players.push({ id: socket.id, nama: namaBersih });
-    pastikanStat(room, socket.id);
-    socket.join(kodeBersih);
-    socket.data.kode = kodeBersih;
-
-    socket.emit('berhasil-gabung', ringkasanRoom(kodeBersih));
-    socket.to(kodeBersih).emit('update-pemain', ringkasanRoom(kodeBersih));
-    console.log(`[gabung-room] BERHASIL: ${namaBersih} join room ${kodeBersih}, total pemain: ${room.players.length}`);
-  });
-
-  socket.on('mulai-main', () => {
-    const kode = socket.data.kode;
-    console.log(`[mulai-main] diterima dari socket ${socket.id}, kode room: ${kode}`);
+    const namaBersih = (nama || 'Pemain').trim().slice(0, 16) || 'Pemain';
     const room = rooms[kode];
+    if (!room)     return socket.emit('error', 'Room tidak ditemukan.');
+    if (room.game) return socket.emit('error', 'Game sudah dimulai.');
+    if (room.players.length >= MAKS_PEMAIN) return socket.emit('error', `Room penuh (maks ${MAKS_PEMAIN}).`);
 
-    if (!room) {
-      console.log(`[mulai-main] GAGAL: room ${kode} tidak ditemukan di server`);
-      return;
-    }
-    if (room.hostId !== socket.id) {
-      console.log(`[mulai-main] GAGAL: socket ${socket.id} bukan host room ${kode} (host: ${room.hostId})`);
-      return;
-    }
-    if (room.players.length < MIN_PEMAIN) {
-      console.log(`[mulai-main] GAGAL: cuma ${room.players.length} pemain, butuh minimal ${MIN_PEMAIN}`);
-      socket.emit('gagal-mulai', `Minimal ${MIN_PEMAIN} pemain buat mulai main.`);
-      return;
-    }
+    room.players.push({ id: socket.id, nama: namaBersih, isHost: false });
+    pastikanStat(room, socket.id);
+    socket.join(kode);
+    socket.data = { kode, nama: namaBersih };
 
-    try {
-      mulaiRondeBaru(kode);
-      kirimGameState(kode);
-      console.log(`[mulai-main] BERHASIL: room ${kode} mulai main dengan ${room.players.length} pemain`);
-    } catch (err) {
-      console.error(`[mulai-main] ERROR saat setup game di room ${kode}:`, err);
-    }
+    io.to(kode).emit('lobby-update', { playersHtml: roomPlayersHtml(room) });
+    socket.emit('lobby-joined', { kode, playersHtml: roomPlayersHtml(room), isHost: false, myName: namaBersih });
   });
 
-  socket.on('ronde-berikutnya', () => {
-    const kode = socket.data.kode;
+  // ---- MULAI GAME ----
+  socket.on('mulai-game', () => {
+    const { kode } = socket.data;
     const room = rooms[kode];
     if (!room || room.hostId !== socket.id) return;
-    if (room.players.length < MIN_PEMAIN) return;
-
-    try {
-      mulaiRondeBaru(kode);
-      kirimGameState(kode);
-      console.log(`[ronde-berikutnya] BERHASIL: room ${kode} mulai ronde ${room.roundNumber}`);
-    } catch (err) {
-      console.error(`[ronde-berikutnya] ERROR di room ${kode}:`, err);
-    }
+    if (room.players.length < MIN_PEMAIN) return socket.emit('error', `Minimal ${MIN_PEMAIN} pemain.`);
+    mulaiRondeBaru(kode);
+    emitGameState(kode, null);
+    io.to(kode).emit('game-mulai');
   });
 
-  // sumber: 'deck' atau 'buang'. Kalau 'buang', server yang nentuin sendiri
-  // tumpukan siapa yang boleh diambil: SELALU tumpukan pemain sebelumnya di
-  // urutan giliran (posisi "kiri" kamu) - bukan pilihan bebas dari client.
+  // ---- AMBIL KARTU ----
   socket.on('ambil-kartu', ({ sumber }) => {
-    const kode = socket.data.kode;
+    const { kode } = socket.data;
     const room = rooms[kode];
     if (!room || !room.game || room.game.status !== 'bermain') return;
     const game = room.game;
-
-    const giliranId = game.turnOrder[game.turnIndex];
-    if (socket.id !== giliranId) return;
-
+    if (game.turnOrder[game.turnIndex] !== socket.id) return;
     const tangan = game.hands[socket.id];
     if (!tangan || tangan.length !== 4) return;
 
     let kartu;
     if (sumber === 'buang') {
       const prevIdx = (game.turnIndex - 1 + game.turnOrder.length) % game.turnOrder.length;
-      const prevPlayerId = game.turnOrder[prevIdx];
-      const tumpukan = game.discards[prevPlayerId];
+      const prevId = game.turnOrder[prevIdx];
+      const tumpukan = game.discards[prevId];
       if (!tumpukan || tumpukan.length === 0) return;
       kartu = tumpukan.pop();
     } else {
-      if (game.deck.length === 0) {
-        selesaikanKarenaDeckHabis(kode);
-        return;
-      }
+      if (game.deck.length === 0) { selesaikanDeckHabis(kode); return; }
       kartu = game.deck.pop();
     }
-
     tangan.push(kartu);
-    kirimGameState(kode);
+    emitGameState(kode, socket.id);
   });
 
-  socket.on('buang-kartu', ({ cardId }) => {
-    const kode = socket.data.kode;
+  // ---- BUANG KARTU ----
+  socket.on('buang-kartu', ({ cardIdx }) => {
+    const { kode } = socket.data;
     const room = rooms[kode];
     if (!room || !room.game || room.game.status !== 'bermain') return;
     const game = room.game;
-
-    const giliranId = game.turnOrder[game.turnIndex];
-    if (socket.id !== giliranId) return;
-
+    if (game.turnOrder[game.turnIndex] !== socket.id) return;
     const tangan = game.hands[socket.id];
     if (!tangan || tangan.length !== 5) return;
+    if (cardIdx < 0 || cardIdx >= tangan.length) return;
 
-    const idx = tangan.findIndex((k) => k.id === cardId);
-    if (idx === -1) return;
-
-    const [kartuDibuang] = tangan.splice(idx, 1);
-    game.discards[socket.id].push(kartuDibuang);
+    const [kartu] = tangan.splice(cardIdx, 1);
+    game.discards[socket.id].push(kartu);
 
     if (cekCheckmate(tangan)) {
       game.status = 'selesai';
-      const pemenang = room.players.find((p) => p.id === socket.id);
-      catatHasilRonde(room, socket.id, pemenang ? pemenang.nama : '-');
-      const semuaSkor = hitungSemuaSkor(room, game);
-      kirimGameState(kode);
-      io.to(kode).emit('permainan-selesai', {
-        alasan: 'checkmate',
-        pemenang: pemenang ? pemenang.nama : '-',
-        semuaSkor,
-        semuaTangan: room.players.map((p) => ({ id: p.id, nama: p.nama, hand: game.hands[p.id] })),
-      });
+      const pemenang = room.players.find(p => p.id === socket.id);
+      catatHasil(room, socket.id, pemenang?.nama || '-');
+      emitGameState(kode, null);
+      io.to(kode).emit('permainan-selesai', { alasan: 'checkmate', pemenang: pemenang?.nama || '-' });
       return;
     }
-
-    if (game.deck.length === 0) {
-      selesaikanKarenaDeckHabis(kode);
-      return;
-    }
-
+    if (game.deck.length === 0) { selesaikanDeckHabis(kode); return; }
     game.turnIndex = (game.turnIndex + 1) % game.turnOrder.length;
-    kirimGameState(kode);
+    emitGameState(kode, socket.id);
   });
 
-  socket.on('kembali-ke-lobi', () => {
-    const kode = socket.data.kode;
+  // ---- RONDE BERIKUTNYA ----
+  socket.on('ronde-berikutnya', () => {
+    const { kode } = socket.data;
     const room = rooms[kode];
-    if (!room) return;
-    room.game = null;
-    io.to(kode).emit('lobi-lagi', ringkasanRoom(kode));
+    if (!room || room.hostId !== socket.id) return;
+    if (room.players.length < MIN_PEMAIN) return;
+    mulaiRondeBaru(kode);
+    emitGameState(kode, null);
   });
 
+  // ---- DISCONNECT ----
   socket.on('disconnect', () => {
-    console.log(`[disconnect] socket ${socket.id} terputus`);
-    const kode = socket.data.kode;
+    const { kode } = socket.data;
     const room = rooms[kode];
     if (!room) return;
 
-    room.players = room.players.filter((p) => p.id !== socket.id);
+    room.players = room.players.filter(p => p.id !== socket.id);
+    delete room.stats[socket.id];
 
-    if (room.players.length === 0) {
-      delete rooms[kode];
-      return;
-    }
+    if (room.players.length === 0) { delete rooms[kode]; return; }
 
     if (room.hostId === socket.id) {
       room.hostId = room.players[0].id;
+      room.players[0].isHost = true;
     }
 
-    if (room.game && room.game.status === 'bermain') {
+    if (room.game) {
       const game = room.game;
-      const posisi = game.turnOrder.indexOf(socket.id);
-      if (posisi !== -1) {
-        game.turnOrder.splice(posisi, 1);
-        if (game.turnOrder.length === 0) {
-          room.game = null;
-        } else {
-          game.turnIndex = game.turnIndex % game.turnOrder.length;
-        }
+      const pos = game.turnOrder.indexOf(socket.id);
+      if (pos !== -1) {
+        game.turnOrder.splice(pos, 1);
+        if (game.turnOrder.length === 0) room.game = null;
+        else game.turnIndex = game.turnIndex % game.turnOrder.length;
       }
+      emitGameState(kode, null);
     }
-
-    io.to(kode).emit('update-pemain', ringkasanRoom(kode));
-    if (room.game) kirimGameState(kode);
+    io.to(kode).emit('lobby-update', { playersHtml: roomPlayersHtml(room) });
   });
 });
 
+// Helper: players list HTML
+function roomPlayersHtml(room) {
+  return room.players.map(p =>
+    `<li>${p.nama} ${p.isHost ? '(Host)' : ''}</li>`
+  ).join('');
+}
+
+// ============================================================
+// START
+// ============================================================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server jalan di port ${PORT}`);
+  console.log(`Server jalan di http://localhost:${PORT}`);
 });
