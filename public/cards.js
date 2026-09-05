@@ -10,42 +10,37 @@ export const SUITS = [
   { id: 'Sk', nama: 'Sukun',    warna: '#6B6A64' },
 ];
 
-// 28 huruf unik dengan value 1–28
-// File naming: angka 1–25 → PNG `Ft_1.png` … `Ft_25.png`
-//               26         → PNG `Ft_As.png`    ('Ain)
-//               27         → PNG `Ft_Ghain.png`
-//               28         → PNG `Ft_Kho.png`
-//               29         → PNG `Ft_Qof.png`
+
 export const HURUF = [
-  { value: 1,  file: '1',     nama: 'Hamzah',      label: 'Hm'  },
-  { value: 2,  file: '2',     nama: 'Ta Marbutah',  label: 'Tm'  },
-  { value: 3,  file: '3',     nama: 'Dal',          label: 'Dl'  },
-  { value: 4,  file: '4',     nama: 'Dzal',         label: 'Dz'  },
-  { value: 5,  file: '5',     nama: 'Ra',           label: 'Ra'  },
-  { value: 6,  file: '6',     nama: 'Zay',          label: 'Zy'  },
-  { value: 7,  file: '7',     nama: 'Jim',          label: 'Jm'  },
-  { value: 8,  file: '8',     nama: 'Ha',           label: 'Ha'  },
-  { value: 9,  file: '9',     nama: 'Wau',          label: 'Wu'  },
-  { value: 10, file: '10',    nama: 'Fa',           label: 'Fa'  },
-  { value: 11, file: '11',    nama: 'Mim',          label: 'Mm'  },
-  { value: 12, file: '12',    nama: 'Kaf',          label: 'Kf'  },
-  { value: 13, file: '13',    nama: 'Lam',          label: 'Lm'  },
-  { value: 14, file: '14',    nama: 'Tha',          label: 'Th'  },
-  { value: 15, file: '15',    nama: 'Zha',          label: 'Zh'  },
-  { value: 16, file: '16',    nama: 'Shad',         label: 'Sh'  },
-  { value: 17, file: '17',    nama: 'Dhad',         label: 'Dh'  },
-  { value: 18, file: '18',    nama: 'Sin',          label: 'Sn'  },
-  { value: 19, file: '19',    nama: 'Syin',         label: 'Sy'  },
-  { value: 20, file: '20',    nama: 'Ya',           label: 'Ya'  },
-  { value: 21, file: '21',    nama: 'Ba',           label: 'Ba'  },
-  { value: 22, file: '22',    nama: 'Nun',          label: 'Nn'  },
-  { value: 23, file: '23',    nama: 'Ta',           label: 'Ta'  },
-  { value: 24, file: '24',    nama: 'Tsa',          label: 'Ts'  },
-  { value: 25, file: '25',    nama: 'Haa',          label: 'Huu' },
-  { value: 26, file: 'As',    nama: "'Ain",         label: "U'"  },
-  { value: 27, file: 'Ghain', nama: 'Ghain',        label: 'Gh'  },
-  { value: 28, file: 'Kho',   nama: 'Kha',          label: 'Kh'  },
-  { value: 29, file: 'Qof',   nama: 'Qaf',          label: 'Qf'  },
+  { value: 1,  file: '1',     nama: 'Hamzah',      "ft": 'Ã' , "ks": 'Ĩ', "dm": 'Ũ', "sk": '~' },
+  { value: 2,  file: '2',     nama: 'Ta Marbutah',  "ft": 'Hta' , "ks": 'Hti', "dm": 'Htu', "sk": 'Ht' },
+  { value: 3,  file: '3',     nama: 'Dal',          "ft": 'Da' , "ks": 'Di', "dm": 'Du', "sk": 'D' },
+  { value: 4,  file: '4',     nama: 'Dzal',         "ft": 'Dza' , "ks": 'Dzi', "dm": 'Dzu', "sk": 'Dz' },
+  { value: 5,  file: '5',     nama: 'Ra',           "ft": 'Ro' , "ks": 'Ri', "dm": 'Ru', "sk": 'R' },
+  { value: 6,  file: '6',     nama: 'Zay',          "ft": 'Za' , "ks": 'Zi', "dm": 'Zu', "sk": 'Z' },
+  { value: 7,  file: '7',     nama: 'Jim',          "ft": 'Ja' , "ks": 'Ji', "dm": 'Ju', "sk": 'J' },
+  { value: 8,  file: '8',     nama: 'Ha',           "ft": 'Ha' , "ks": 'Hi', "dm": 'Hu', "sk": 'H' },
+  { value: 9,  file: '9',     nama: 'Wau',          "ft": 'Wa' , "ks": 'Wi', "dm": 'Wu', "sk": 'W' },
+  { value: 10, file: '10',    nama: 'Fa',           "ft": 'Fa' , "ks": 'Fi', "dm": 'Fu', "sk": 'F' },
+  { value: 11, file: '11',    nama: 'Mim',          "ft": 'Ma' , "ks": 'Mi', "dm": 'Mu', "sk": 'M' },
+  { value: 12, file: '12',    nama: 'Kaf',          "ft": 'Ka' , "ks": 'Ki', "dm": 'Ku', "sk": 'K' },
+  { value: 13, file: '13',    nama: 'Lam',          "ft": 'La' , "ks": 'Li', "dm": 'Lu', "sk": 'L' },
+  { value: 14, file: '14',    nama: 'Tha',          "ft": 'Tho' , "ks": 'Thi', "dm": 'Thu', "sk": 'Th' },
+  { value: 15, file: '15',    nama: 'Zha',          "ft": 'Zho' , "ks": 'Zhi', "dm": 'Zhu', "sk": 'Zh' },
+  { value: 16, file: '16',    nama: 'Shad',         "ft": 'Sho' , "ks": 'Shi', "dm": 'Shu', "sk": 'Sh' },
+  { value: 17, file: '17',    nama: 'Dhad',         "ft": 'Dho' , "ks": 'Dhi', "dm": 'Dhu', "sk": 'Dh' },
+  { value: 18, file: '18',    nama: 'Sin',          "ft": 'Sa' , "ks": 'Si', "dm": 'Su', "sk": 'S' },
+  { value: 19, file: '19',    nama: 'Syin',         "ft": 'Sya' , "ks": 'Syi', "dm": 'Syu', "sk": 'Sy' },
+  { value: 20, file: '20',    nama: 'Ya',           "ft": 'Ya' , "ks": 'Yi', "dm": 'Yu', "sk": 'Y' },
+  { value: 21, file: '21',    nama: 'Ba',           "ft": 'Ba' , "ks": 'Bi', "dm": 'Bu', "sk": 'B' },
+  { value: 22, file: '22',    nama: 'Nun',          "ft": 'Na' , "ks": 'Ni', "dm": 'Nn', "sk": 'Nn' },
+  { value: 23, file: '23',    nama: 'Ta',           "ft": 'Ta' , "ks": 'Ti', "dm": 'Ta', "sk": 'Ta' },
+  { value: 24, file: '24',    nama: 'Tsa',          "ft": 'Tsa' , "ks": 'Tsi', "dm": 'Ts', "sk": 'Ts' },
+  { value: 25, file: '25',    nama: 'Haa',          "ft": 'Ĥaa', "ks": 'Ĥii', "dm": 'Ĥuu', "sk": 'Ĥ' },
+  { value: 26, file: 'Qof',    nama: "Qaf",         "ft": "Qof" , "ks": 'Qi', "dm": 'Qu', "sk": 'Q' },
+  { value: 25, file: 'Ghain', nama: 'Ghain',        "ft": 'Gho' , "ks": 'Ghi', "dm": 'Ghu', "sk": 'Gh' },
+  { value: 25, file: 'Kho',   nama: 'Kha',          "ft": 'Kho' , "ks": 'Khi', "dm": 'Khu', "sk": 'Kh' },
+  { value: 26, file: 'As',   nama: "'Ain",          "ft": "Á" , "ks": 'Í', "dm": 'Ú', "sk": "'" },
 ];
 
 // ============================================================

@@ -1,260 +1,215 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+// ============================================================
+// CHECKMATE 101 - CLIENT SIDE ENGINE (VS 3 BOTS)
+// ============================================================
 import { buatDeck, kocokDeck, cekCheckmate, kalkulasiSkorDetail } from './cards.js';
 
-// ---- 1. FIREBASE INIT ----
-const firebaseConfig = {
-  apiKey: "AIzaSyBfwN2QDz-MiwBEpt9tv9KXhDrNAaUE71c",
-  authDomain: "hijaiyyahcard.firebaseapp.com",
-  databaseURL: "https://hijaiyyahcard-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "hijaiyyahcard",
-  storageBucket: "hijaiyyahcard.firebasestorage.app",
-  messagingSenderId: "927126787805",
-  appId: "1:927126787805:web:ace6f351c7918452abed34"
+// State Permainan Lokal
+let gameState = {
+  roomCode: '9999',
+  round: 1,
+  status: 'playing', // 'playing' | 'ended'
+  deck: [],
+  turnIndex: 0, // 0: Aaa (Kamu), 1: Bbb, 2: Ccc, 3: Ddd
+  turnOrder: ['Aaa', 'Bbb', 'Ccc', 'Ddd'],
+  players: {
+    'Aaa': { name: 'Aaa', hand: [], discards: [], stats: { w: 0, l: 0, a: 0 } },
+    'Bbb': { name: 'Bbb', hand: [], discards: [], stats: { w: 0, l: 0, a: 0 } },
+    'Ccc': { name: 'Ccc', hand: [], discards: [], stats: { w: 0, l: 0, a: 0 } },
+    'Ddd': { name: 'Ddd', hand: [], discards: [], stats: { w: 0, l: 0, a: 0 } }
+  },
+  lastGame: { win: '-', lose: '-' },
+  kartuTerpilihId: null,
+  fase: 'ambil' // 'ambil' atau 'buang'
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// ---- 2. IDENTITY ----
-const myName = localStorage.getItem('playerName');
-const isHost = localStorage.getItem('isHost') === 'true';
-const urlParams = new URLSearchParams(window.location.search);
-const roomCode = urlParams.get('room');
-
-if (!roomCode || !myName) window.location.href = 'index.html';
-
-const roomRef = ref(db, `rooms/${roomCode}`);
-
-// ---- 3. STATE ----
-let localState = null;
-let selectedCardIndex = null; // kartu yang diklik untuk dibuang
-
-// ---- 4. DOM REFS ----
-const elRoomCode = document.getElementById('roomCode');
-const elRoundNum = document.getElementById('roundNum');
-const elPlayerStats = document.getElementById('playerStats');
-const elDiscardCount = document.getElementById('discardCount');
-const elDeckCount = document.getElementById('deckCount');
-const elDeckSisa = document.getElementById('deckSisa');
-const elCurrentTurn = document.getElementById('currentTurnName');
-const elLastGameInfo = document.getElementById('lastGameInfo');
-const endGameCenter = document.getElementById('endGameCenter');
-const winnerName = document.getElementById('winnerName');
-const endScores = document.getElementById('endScores');
-const btnMainLagi = document.getElementById('btnMainLagi');
-const btnKeluar = document.getElementById('btnKeluar');
-const btnAmbilDeck = document.getElementById('btnAmbilDeck');
-const deckPile = document.getElementById('deckPile');
-const scoreCardsEl = document.getElementById('scoreCards');
-const scoreCalcEl = document.getElementById('scoreCalc');
-const scoreTotalEl = document.getElementById('scoreTotal');
-
-// ---- 5. FIREBASE LISTENER ----
-update(ref(db, `rooms/${roomCode}/players/${myName}`), { status: 'online' });
-
-onValue(roomRef, (snapshot) => {
-  const data = snapshot.val();
-  if (!data) return;
-  localState = data;
-
-  // Auto-start: host mulai game saat 4 pemain sudah masuk
-  if (isHost && data.status === 'waiting') {
-    const playerNames = Object.keys(data.players || {});
-    if (playerNames.length >= 2) {
-      mulaiGame(playerNames);
-    }
-  }
-
-  if (data.status === 'playing' || data.status === 'ended') {
-    renderGame(data);
-  }
-});
-
-// ---- 6. MULAI GAME (HOST ONLY) ----
-async function mulaiGame(playerNames) {
-  if (!localState) return;
-
+// Inisialisasi Game saat halaman dimuat
+function initGame() {
   const deck = kocokDeck(buatDeck());
-  const playersData = {};
+  
+  // Jika game sebelumnya sudah selesai, naikkan round saat Main Lagi
+  if (gameState.status === 'ended') {
+    gameState.round += 1;
+  }
+  
+  gameState.turnOrder.forEach(name => {
+    gameState.players[name].hand = deck.splice(0, 4);
+    gameState.players[name].discards = [];
+  });
+  
+  gameState.deck = deck;
+  gameState.status = 'playing';
+  gameState.kartuTerpilihId = null;
+  gameState.fase = 'ambil';
 
-  playerNames.forEach(name => {
-    playersData[name] = {
-      ...(localState.players[name] || {}),
-      hand: deck.splice(0, 4),
-      discards: [],
-      stats: localState.players[name]?.stats || { w: 0, l: 0 }
-    };
+  // Sembunyikan OpenCardArea dan Overlay Menang saat game baru dimulai
+  document.getElementById('endGameCenter').classList.add('hidden');
+  document.getElementById('btnMainLagi').classList.add('hidden');
+  document.getElementById('btnKeluar').classList.add('hidden');
+
+  ['A', 'B', 'C', 'D'].forEach(pos => {
+    const openArea = document.getElementById(`openArea${pos}`);
+    if (openArea) openArea.innerHTML = ''; // Kosongkan kartu terbuka
   });
 
-  await update(roomRef, {
-    status: 'playing',
-    round: (localState.round || 0) + 1,
-    turnOrder: playerNames,
-    turnIndex: 0,
-    deck: deck,
-    players: playersData
-  });
+  render();
+  cekGiliranBot();
 }
 
-// ---- 7. RENDER UTAMA ----
-function renderGame(data) {
-  if (!data || !data.turnOrder) return;
+// ============================================================
+// RENDER UI UTAMA
+// ============================================================
+function render() {
+  const currentPlayer = gameState.turnOrder[gameState.turnIndex];
+  const isMyTurn = (currentPlayer === 'Aaa');
+  const myHand = gameState.players['Aaa'].hand;
 
-  const turnOrder = data.turnOrder;
-  const turnIndex = data.turnIndex || 0;
-  const giliranSaatIni = turnOrder[turnIndex];
-  const giliranSaya = giliranSaatIni === myName;
+  // 1. Panel Atas
+  document.getElementById('roomCode').textContent = gameState.roomCode;
+  document.getElementById('roundNum').textContent = gameState.round;
+  document.getElementById('currentTurnName').textContent = currentPlayer;
+  document.getElementById('deckCount').textContent = gameState.deck.length;
+  document.getElementById('deckSisa').textContent = gameState.deck.length;
 
-  // Tangan & discards saya
-  const tanganSaya = data.players[myName]?.hand || [];
-  const discardsSaya = data.players[myName]?.discards || [];
-
-  // Mapping kursi: saya selalu di posisi A (bawah), lalu berlawanan jarum jam
-  const myIndex = turnOrder.indexOf(myName);
-  const mappingPos = {};
-  ['A', 'B', 'C', 'D'].forEach((pos, i) => {
-    mappingPos[pos] = turnOrder[(myIndex + i) % 4];
+  let totalTerbuang = 0;
+  let statsHtml = '';
+  gameState.turnOrder.forEach(name => {
+    const p = gameState.players[name];
+    totalTerbuang += p.discards.length;
+    statsHtml += `<li>${name} | W: ${p.stats.w} L: ${p.stats.l}</li>`;
   });
-  // mappingPos = { A: myName, B: kanan, C: atas, D: kiri }
+  document.getElementById('playerStats').innerHTML = statsHtml;
+  document.getElementById('discardCount').textContent = totalTerbuang;
 
-  // Mapping posisi ke discard wrapper ID
-  const posToDiscardId = { A: 'A', B: 'B', C: 'C2', D: 'D2' };
-  const posToHandId = { B: 'Bbb', C: 'Ccc', D: 'Ddd' };
-  const posToNameId = { A: 'nameA', B: 'nameB', C: 'nameC', D: 'nameD' };
-  const posToOpenId = { A: 'openAreaA', B: 'openAreaB', C: 'openAreaC', D: 'openAreaD' };
+  // Update Statistik W, L, A ke HTML Top Panel
+  const mapKey = { 'Aaa': 'A', 'Bbb': 'B', 'Ccc': 'C', 'Ddd': 'D' };
+  gameState.turnOrder.forEach(name => {
+    const key = mapKey[name];
+    const stat = gameState.players[name].stats;
+    
+    const elW = document.getElementById(`w-${key}`);
+    const elL = document.getElementById(`l-${key}`);
+    const elA = document.getElementById(`a-${key}`);
+    
+    if (elW) elW.textContent = `W: ${stat.w}`;
+    if (elL) elL.textContent = `L: ${stat.l}`;
+    if (elA) elA.textContent = `A: ${stat.a}`;
+  });
 
-  // ---- Panel Info Atas ----
-  elRoomCode.textContent = roomCode;
-  elRoundNum.textContent = data.round || 1;
-  elDeckCount.textContent = data.deck ? data.deck.length : 0;
-  elDeckSisa.textContent = data.deck ? data.deck.length : 0;
-  elCurrentTurn.textContent = giliranSaatIni;
-
-  // Last game
-  if (data.lastGame) {
-    elLastGameInfo.innerHTML = `Win: ${data.lastGame.win || '-'}<br>Lose: ${data.lastGame.lose || '-'}`;
-  } else {
-    elLastGameInfo.textContent = '-';
+  // Update Last Game Info
+  const elLastGame = document.getElementById('lastGameInfo');
+  if (elLastGame) {
+    const lastWin = gameState.lastGame?.win || '-';
+    const lastAman = gameState.lastGame?.aman || '-';
+    const lastLose = gameState.lastGame?.lose || '-';
+    elLastGame.innerHTML = `Win: ${lastWin}<br>Aman: ${lastAman}<br>Lose: ${lastLose}`;
   }
 
-  // Player stats list
-  elPlayerStats.innerHTML = '';
-  let totalDiscards = 0;
-  turnOrder.forEach(nama => {
-    const stat = data.players[nama]?.stats || { w: 0, l: 0 };
-    elPlayerStats.innerHTML += `<li>${nama} | W: ${stat.w} L: ${stat.l}</li>`;
-    totalDiscards += (data.players[nama]?.discards?.length || 0);
-  });
-  elDiscardCount.textContent = totalDiscards;
-
-  // ---- Render Setiap Kursi ----
-  Object.keys(mappingPos).forEach(pos => {
-    const namaPemain = mappingPos[pos];
-    const playerData = data.players[namaPemain];
-
-    // Nama kursi
-    const elName = document.getElementById(posToNameId[pos]);
+  // 2. Indikator Giliran Nama Pemain
+  ['A', 'B', 'C', 'D'].forEach(pos => {
+    const nameMap = { 'A': 'Aaa', 'B': 'Bbb', 'C': 'Ccc', 'D': 'Ddd' };
+    const pName = nameMap[pos];
+    const elName = document.getElementById(`name${pos}`);
     if (elName) {
-      elName.textContent = namaPemain;
-      elName.className = `seat-name ${giliranSaatIni === namaPemain ? 'active-turn' : ''}`;
-    }
-
-    // Tangan lawan (kartu belakang)
-    if (pos !== 'A') {
-      const elHandLawan = document.getElementById(posToHandId[pos]);
-      if (elHandLawan) {
-        const jmlKartu = playerData?.hand?.length || 0;
-        elHandLawan.innerHTML = Array(jmlKartu).fill(
-          `<img src="img/back.png" class="card-img" alt="kartu">`
-        ).join('');
-      }
-    }
-
-    // Discard pile untuk pemain ini
-    const discardId = posToDiscardId[pos];
-    const discardWrapper = document.getElementById(`discardWrapper${discardId}`);
-    const discardGrid = document.getElementById(`discardGrid${discardId}`);
-    const btnAmbilDiscard = document.getElementById(`btnAmbilDiscard${discardId}`);
-
-    if (discardGrid && discardWrapper) {
-      const tumpukan = playerData?.discards || [];
-      discardGrid.innerHTML = tumpukan.map(k =>
-        `<img src="img/${k.file}" class="card-img" alt="buangan">`
-      ).join('');
-
-      // Tentukan apakah saya boleh ambil dari tumpukan ini
-      // Aturan: boleh ambil dari tumpukan pemain SEBELUM saya di turn order
-      const prevIndex = (turnIndex - 1 + turnOrder.length) % turnOrder.length;
-      const prevPlayer = turnOrder[prevIndex];
-      const bolehAmbil = giliranSaya
-        && tanganSaya.length === 4
-        && namaPemain === prevPlayer
-        && tumpukan.length > 0;
-
-      discardWrapper.classList.toggle('active-draw', bolehAmbil);
-      btnAmbilDiscard.style.display = bolehAmbil ? 'block' : 'none';
-      btnAmbilDiscard.onclick = bolehAmbil
-        ? () => ambilKartuDari('discard', namaPemain)
-        : null;
+      elName.textContent = pName;
+      elName.className = `seat-name ${currentPlayer === pName ? 'active-turn' : 'inactive'}`;
     }
   });
 
-  // ---- Render Tangan Saya ----
-  renderMyHand(tanganSaya, giliranSaya, data);
+  // 3. Tangan Lawan (B, C, D) & Tumpukan Kartu Belakang
+  ['B', 'C', 'D'].forEach(pos => {
+    const nameMap = { 'B': 'Bbb', 'C': 'Ccc', 'D': 'Ddd' };
+    const pName = nameMap[pos];
+    const count = gameState.players[pName].hand.length;
+    const handElId = pos === 'B' ? 'handBbb' : pos === 'C' ? 'handCcc' : 'handDdd';
+    
+    const handContainer = document.getElementById(handElId);
+    if (handContainer) {
+      handContainer.innerHTML = Array(count).fill(`<img src="img/back.png" class="card-img">`).join('');
+    }
+  });
 
-  // ---- Render Deck ----
-  const bolehAmbilDeck = giliranSaya && tanganSaya.length === 4 && data.deck && data.deck.length > 0;
-  deckPile.classList.toggle('active-draw', bolehAmbilDeck);
-  btnAmbilDeck.style.display = bolehAmbilDeck ? 'block' : 'none';
-  btnAmbilDeck.onclick = bolehAmbilDeck ? () => ambilKartuDari('deck') : null;
+// 4. Tumpukan Buangan (Discard Grids per arah) & Tombol Ambil
+  // Aturan: Kamu (Aaa) hanya boleh mengambil dari tumpukan pemain sebelummu (Ddd / Kiri)
+  const mappingPosisiBuang = { 'A': 'Aaa', 'B': 'Bbb', 'C': 'Ccc', 'D': 'Ddd' };
+  
+  ['A', 'B', 'C', 'D'].forEach(pos => {
+    const pName = mappingPosisiBuang[pos];
+    const discards = gameState.players[pName].discards;
+    const discardGrid = document.querySelector(`.pile-discard-${pos} .discard-grid`);
+    
+    // Aturan ketat: Giliran saya + Fase Ambil + Posisi D (Kiri) + Ada kartunya
+    const bolehAmbilDiscard = isMyTurn && gameState.fase === 'ambil' && myHand.length === 4 && pos === 'D' && discards.length > 0;
+    
+    if (discardGrid) {
+      discardGrid.innerHTML = discards.map((k, index) => {
+        // HANYA kartu terakhir (teratas) yang mendapat kelas 'active-discard'
+        const isLatest = index === discards.length - 1;
+        const activeClass = (isLatest && bolehAmbilDiscard) ? 'active-discard' : '';
+        return `<img src="img/${k.file}" class="card-img ${activeClass}">`;
+      }).join('');
+    }
 
-  // ---- Render Skor Live ----
-  renderSkorLive(tanganSaya);
+    const btnAmbil = document.querySelector(`.pile-discard-${pos} .btn-ambil`);
+    const pileContainer = document.querySelector(`.pile-discard-${pos}`);
+    
+    if (btnAmbil && pileContainer) {
+      // Kosongkan inline-style agar kontrol diserahkan kembali ke CSS (Hover effect)
+      btnAmbil.style.display = ''; 
+      pileContainer.classList.toggle('active-draw', bolehAmbilDiscard);
+      btnAmbil.onclick = bolehAmbilDiscard ? () => ambilKartuDariDiscard(pName) : null;
+    }
+  });
 
-  // ---- Render Showdown (jika ended) ----
-  if (data.status === 'ended') {
-    renderShowdown(data, mappingPos, posToOpenId);
-  } else {
-    endGameCenter.classList.add('hidden');
+  // 5. Deck Tengah
+  const bolehAmbilDeck = isMyTurn && gameState.fase === 'ambil' && myHand.length === 4 && gameState.deck.length > 0;
+  const deckPile = document.getElementById('deckPile');
+  const btnAmbilDeck = document.getElementById('btnAmbilDeck');
+  
+  if (btnAmbilDeck && deckPile) {
+    btnAmbilDeck.style.display = ''; // Kosongkan inline-style agar hover jalan
+    deckPile.classList.toggle('active-draw', bolehAmbilDeck);
+    btnAmbilDeck.onclick = bolehAmbilDeck ? ambilKartuDariDeck : null;
   }
+
+  // 6. Tangan Sendiri (Aaa) & Panel Skor
+  renderTanganSaya(myHand, isMyTeurtBaru => {
+    // callback ketika kartu dipilih/dibuang
+  });
 }
 
-// ---- 8. RENDER TANGAN SENDIRI ----
-function renderMyHand(hand, giliranSaya, data) {
+// ============================================================
+// RENDER TANGAN & PANEL SKOR KAMU
+// ============================================================
+function renderTanganSaya(hand, isMyTurn) {
   const myHandEl = document.getElementById('myHand');
   myHandEl.innerHTML = '';
+  
+  if (hand.length === 4) gameState.fase = 'ambil';
+  if (hand.length === 5) gameState.fase = 'buang';
 
-  // Boleh buang kalau: giliran saya + tangan sudah 5 kartu
-  const bolehBuang = giliranSaya && hand.length === 5;
+  const bolehBuang = isMyTurn && gameState.fase === 'buang';
 
-  hand.forEach((kartu, idx) => {
+  hand.forEach((kartu, index) => {
     const wrap = document.createElement('div');
-    wrap.className = 'card-wrap';
-    if (bolehBuang) wrap.classList.add('pilihable');
-    if (idx === selectedCardIndex) wrap.classList.add('selected');
+    wrap.className = `card-wrap ${bolehBuang ? 'pilihable' : ''} ${kartu.id === gameState.kartuTerpilihId ? 'selected' : ''}`;
+    wrap.style.position = 'relative';
 
     const img = document.createElement('img');
     img.src = `img/${kartu.file}`;
     img.className = 'card-img';
-    img.alt = kartu.nama;
 
     const btnBuang = document.createElement('button');
     btnBuang.className = 'action-btn btn-buang';
     btnBuang.textContent = 'Buang';
-    btnBuang.style.display = 'none';
 
     if (bolehBuang) {
-      img.style.cursor = 'pointer';
       img.onclick = () => {
-        selectedCardIndex = selectedCardIndex === idx ? null : idx;
-        renderMyHand(hand, giliranSaya, data);
+        gameState.kartuTerpilihId = gameState.kartuTerpilihId === kartu.id ? null : kartu.id;
+        render();
       };
-      btnBuang.style.display = idx === selectedCardIndex ? 'block' : 'none';
       btnBuang.onclick = (e) => {
         e.stopPropagation();
-        buangKartu(idx);
-        selectedCardIndex = null;
+        buangKartuSaya(index);
       };
     }
 
@@ -262,177 +217,199 @@ function renderMyHand(hand, giliranSaya, data) {
     wrap.appendChild(btnBuang);
     myHandEl.appendChild(wrap);
   });
+
+  // Perhitungan Skor Live
+  const hasilSkor = kalkulasiSkorDetail(hand);
+  
+  document.getElementById('scoreCards').innerHTML = hasilSkor.rincian.map(k => 
+    `<span style="color: ${k.warna}; font-weight: bold;">${k.label || k.nama}</span>`
+  ).join(' | ');
+
+  document.getElementById('scoreCalc').innerHTML = hasilSkor.rincian.map(k => {
+    const op = k.operator ? `${k.operator} ` : '';
+    return `<span style="color: ${k.warna};">${op}${k.nilaiAbsolut}</span>`;
+  }).join(' ');
+
+  const totalEl = document.getElementById('scoreTotal');
+  totalEl.textContent = hasilSkor.total;
+  totalEl.style.color = hasilSkor.total < 0 ? 'var(--btn-red)' : 'var(--ink-dark)';
 }
 
-// ---- 9. RENDER SKOR LIVE ----
-function renderSkorLive(hand) {
-  if (!hand || hand.length === 0) {
-    scoreCardsEl.textContent = '-';
-    scoreCalcEl.textContent = '-';
-    scoreTotalEl.textContent = '0';
+// ============================================================
+// AKSI PEMAIN (AMBIL & BUANG)
+// ============================================================
+function ambilKartuDariDeck() {
+  if (gameState.deck.length === 0) return cekDeckHabis();
+  const kartu = gameState.deck.pop();
+  gameState.players['Aaa'].hand.push(kartu);
+  gameState.fase = 'buang';
+  render();
+}
+
+function ambilKartuDariDiscard(targetPlayerName) {
+  const discards = gameState.players[targetPlayerName].discards;
+  if (discards.length === 0) return;
+  const kartu = discards.pop();
+  gameState.players['Aaa'].hand.push(kartu);
+  gameState.fase = 'buang';
+  render();
+}
+
+function buangKartuSaya(index) {
+  gameState.kartuTerpilihId = null;
+  const hand = gameState.players['Aaa'].hand;
+  const [dibuang] = hand.splice(index, 1);
+  gameState.players['Aaa'].discards.push(dibuang);
+
+  // Cek Checkmate
+  if (cekCheckmate(hand)) {
+    selesaikanGame('Aaa', 'checkmate');
+  } else if (gameState.deck.length === 0) {
+    cekDeckHabis();
+  } else {
+    gameState.fase = 'ambil';
+    pindahGiliranBerikutnya();
+  }
+}
+
+// ============================================================
+// LOGIKA BOT BERGERAK OTOMATIS
+// ============================================================
+function cekGiliranBot() {
+  const currentPlayer = gameState.turnOrder[gameState.turnIndex];
+  if (currentPlayer !== 'Aaa' && gameState.status === 'playing') {
+    // Beri jeda 1.5 detik agar terasa natural seperti bot sedang berpikir
+    setTimeout(() => {
+      jalankanAksiBot(currentPlayer);
+    }, 1500);
+  }
+}
+
+function jalankanAksiBot(botName) {
+  if (gameState.status !== 'playing') return;
+  
+  const botHand = gameState.players[botName].hand;
+
+  // 1. Bot Ambil Kartu (Prioritas dari deck jika ada)
+  if (gameState.deck.length > 0) {
+    botHand.push(gameState.deck.pop());
+  } else {
+    cekDeckHabis();
     return;
   }
 
-  const hasil = kalkulasiSkorDetail(hand);
+  render();
 
-  scoreCardsEl.innerHTML = hasil.rincian.map(k =>
-    `<span style="color:${k.isMain ? k.warna : 'var(--btn-red)'}; font-weight:bold;">${k.label}</span>`
-  ).join(' | ');
+  // 2. Bot Berpikir untuk Membuang 1 Kartu setelah 1 detik
+  setTimeout(() => {
+    if (gameState.status !== 'playing') return;
 
-  scoreCalcEl.innerHTML = hasil.rincian.map((k, i) => {
-    const op = i === 0 ? '' : (k.isMain ? '+' : '-');
-    return `<span style="color:${k.isMain ? k.warna : 'var(--btn-red)'}">${op}${k.nilaiAbsolut}</span>`;
-  }).join(' ');
+    // AI Sederhana: Buang kartu bernilai paling kecil atau acak dari 5 kartu tangannya
+    const randomIndex = Math.floor(Math.random() * botHand.length);
+    const [dibuang] = botHand.splice(randomIndex, 1);
+    gameState.players[botName].discards.push(dibuang);
 
-  scoreTotalEl.textContent = hasil.total;
-  scoreTotalEl.style.color = hasil.total < 0 ? 'var(--btn-red)' : 'var(--ink-dark)';
-}
-
-// ---- 10. AKSI: AMBIL KARTU ----
-async function ambilKartuDari(sumber, namaLawan = null) {
-  if (!localState) return;
-
-  // Kunci UI saat proses
-  const snapshot = await get(roomRef);
-  const data = snapshot.val();
-  if (!data) return;
-
-  const updates = {};
-  let kartuTerambil;
-
-  if (sumber === 'deck') {
-    if (!data.deck || data.deck.length === 0) return;
-    kartuTerambil = data.deck.pop();
-    updates[`rooms/${roomCode}/deck`] = data.deck;
-  } else if (sumber === 'discard') {
-    const tumpukan = data.players[namaLawan]?.discards;
-    if (!tumpukan || tumpukan.length === 0) return;
-    kartuTerambil = tumpukan.pop();
-    updates[`rooms/${roomCode}/players/${namaLawan}/discards`] = tumpukan;
-  }
-
-  const tanganBaru = [...(data.players[myName]?.hand || []), kartuTerambil];
-  updates[`rooms/${roomCode}/players/${myName}/hand`] = tanganBaru;
-
-  await update(ref(db), updates);
-}
-
-// ---- 11. AKSI: BUANG KARTU ----
-async function buangKartu(indexKartu) {
-  if (!localState) return;
-
-  const snapshot = await get(roomRef);
-  const data = snapshot.val();
-  if (!data) return;
-
-  const tanganLama = [...(data.players[myName]?.hand || [])];
-  if (indexKartu < 0 || indexKartu >= tanganLama.length) return;
-
-  const [kartuDibuang] = tanganLama.splice(indexKartu, 1);
-  const discardsBaru = [...(data.players[myName]?.discards || []), kartuDibuang];
-
-  const updates = {
-    [`rooms/${roomCode}/players/${myName}/hand`]: tanganLama,
-    [`rooms/${roomCode}/players/${myName}/discards`]: discardsBaru
-  };
-
-  // Cek checkmate (4 kartu, suit sama, total = 101)
-  if (cekCheckmate(tanganLama)) {
-    const lastWinner = myName;
-    const lastLoser = data.turnOrder.filter(n => n !== myName);
-
-    updates[`rooms/${roomCode}/status`] = 'ended';
-    updates[`rooms/${roomCode}/lastGame/win`] = lastWinner;
-    updates[`rooms/${roomCode}/lastGame/lose`] = lastLoser.join(', ');
-
-    // Update stats W/L
-    data.turnOrder.forEach(nama => {
-      const currentStats = data.players[nama]?.stats || { w: 0, l: 0 };
-      updates[`rooms/${roomCode}/players/${nama}/stats`] = {
-        w: currentStats.w + (nama === myName ? 1 : 0),
-        l: currentStats.l + (nama !== myName ? 1 : 0)
-      };
-    });
-  } else if (!data.deck || data.deck.length === 0) {
-    // Deck habis → showdown
-    updates[`rooms/${roomCode}/status`] = 'ended';
-
-    // Hitung skor semua pemain, tentukan pemenang
-    let skorTertinggi = -9999;
-    let pemenang = null;
-    data.turnOrder.forEach(nama => {
-      const hand = data.players[nama]?.hand || [];
-      const skor = kalkulasiSkorDetail(hand).total;
-      if (skor > skorTertinggi) {
-        skorTertinggi = skor;
-        pemenang = nama;
-      }
-    });
-
-    updates[`rooms/${roomCode}/lastGame/win`] = pemenang;
-    updates[`rooms/${roomCode}/lastGame/lose`] = data.turnOrder.filter(n => n !== pemenang).join(', ');
-
-    data.turnOrder.forEach(nama => {
-      const currentStats = data.players[nama]?.stats || { w: 0, l: 0 };
-      updates[`rooms/${roomCode}/players/${nama}/stats`] = {
-        w: currentStats.w + (nama === pemenang ? 1 : 0),
-        l: currentStats.l + (nama !== pemenang ? 1 : 0)
-      };
-    });
-  } else {
-    // Pindah giliran ke pemain berikutnya
-    const nextIndex = (data.turnIndex + 1) % data.turnOrder.length;
-    updates[`rooms/${roomCode}/turnIndex`] = nextIndex;
-  }
-
-  await update(ref(db), updates);
-}
-
-// ---- 12. SHOWDOWN ----
-function renderShowdown(data, mappingPos, posToOpenId) {
-  endGameCenter.classList.remove('hidden');
-  winnerName.textContent = data.lastGame?.win || 'DRAW';
-
-  // Buka semua kartu
-  Object.keys(mappingPos).forEach(pos => {
-    const namaPemain = mappingPos[pos];
-    const hand = data.players[namaPemain]?.hand || [];
-    const openArea = document.getElementById(posToOpenId[pos]);
-    if (openArea) {
-      openArea.innerHTML = hand.map(k =>
-        `<img src="img/${k.file}" class="card-img" alt="${k.nama}">`
-      ).join('');
+    // Cek apakah bot menang Checkmate
+    if (cekCheckmate(botHand)) {
+      selesaikanGame(botName, 'checkmate');
+    } else if (gameState.deck.length === 0) {
+      cekDeckHabis();
+    } else {
+      pindahGiliranBerikutnya();
     }
+  }, 1000);
+}
 
-    // Skor akhir
-    if (pos === 'A') {
-      const skor = kalkulasiSkorDetail(hand).total;
-      scoreTotalEl.textContent = skor;
+function pindahGiliranBerikutnya() {
+  gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
+  gameState.fase = 'ambil';
+  render();
+  cekGiliranBot();
+}
+
+// ============================================================
+// GAME OVER & SHOWDOWN
+// ============================================================
+function cekDeckHabis() {
+  // Cari pemain dengan skor tertinggi jika deck habis
+  let pemenang = 'Aaa';
+  let skorTertinggi = -999;
+
+  gameState.turnOrder.forEach(name => {
+    const skor = kalkulasiSkorDetail(gameState.players[name].hand).total;
+    if (skor > skorTertinggi) {
+      skorTertinggi = skor;
+      pemenang = name;
     }
   });
 
-  // Tampilkan skor semua pemain
-  const allScores = data.turnOrder.map(nama => {
-    const hand = data.players[nama]?.hand || [];
-    return { nama, skor: kalkulasiSkorDetail(hand).total };
-  }).sort((a, b) => b.skor - a.skor);
-
-  endScores.innerHTML = allScores.map(s =>
-    `<div style="font-size:1.1rem; margin:4px 0;">${s.nama}: <b>${s.skor}</b></div>`
-  ).join('');
-
-  // Tombol Main Lagi (hanya host)
-  btnMainLagi.classList.toggle('hidden', !isHost);
-  btnKeluar.classList.remove('hidden');
+  selesaikanGame(pemenang, 'deck-habis');
 }
 
-// ---- 13. EVENT LISTENERS ----
-btnMainLagi.onclick = () => {
-  if (!localState || !localState.turnOrder) return;
-  mulaiGame(localState.turnOrder);
-  endGameCenter.classList.add('hidden');
+function selesaikanGame(namaPemenang, alasan) {
+  gameState.status = 'ended';
+
+  // Hitung skor akhir semua pemain
+  const skorPemain = gameState.turnOrder.map(name => {
+    return {
+      name: name,
+      skor: kalkulasiSkorDetail(gameState.players[name].hand).total
+    };
+  });
+
+  // Urutkan dari skor terkecil ke terbesar
+  skorPemain.sort((a, b) => a.skor - b.skor);
+
+  const namaKalah = skorPemain[0].name; // Poin terkecil mutlak kalah (L)
+  const pemainAman = skorPemain.slice(1).filter(p => p.name !== namaPemenang).map(p => p.name); // 2 pemain di tengah berstatus Aman (A)
+
+  // Update Statistik W, L, A
+  gameState.players[namaPemenang].stats.w += 1;
+  gameState.players[namaKalah].stats.l += 1;
+  pemainAman.forEach(nama => {
+    gameState.players[nama].stats.a += 1;
+  });
+
+  gameState.lastGame = {
+    win: namaPemenang,
+    aman: pemainAman.join(', '),
+    lose: namaKalah
+  };
+
+  renderShowdown(namaPemenang, alasan);
+}
+
+function renderShowdown(pemenang, alasan) {
+  document.getElementById('endGameCenter').classList.remove('hidden');
+  document.getElementById('winnerName').textContent = pemenang;
+
+  document.getElementById('btnMainLagi').classList.remove('hidden');
+  document.getElementById('btnKeluar').classList.remove('hidden');
+
+  // Buka semua kartu pemain di OpenArea tengah meja HANYA saat game berakhir
+  const mappingPosisi = { 'A': 'Aaa', 'B': 'Bbb', 'C': 'Ccc', 'D': 'Ddd' };
+  
+  Object.keys(mappingPosisi).forEach(pos => {
+    const pName = mappingPosisi[pos];
+    const hand = gameState.players[pName].hand;
+    const elOpenArea = document.getElementById(`openArea${pos}`);
+    if (elOpenArea) {
+      elOpenArea.innerHTML = hand.map(k => `<img src="img/${k.file}" class="card-img">`).join('');
+    }
+  });
+}
+
+// Tombol Main Lagi & Keluar di Overlay
+document.getElementById('btnMainLagi').onclick = () => {
+  document.getElementById('endGameCenter').classList.add('hidden');
+  document.getElementById('btnMainLagi').classList.add('hidden');
+  document.getElementById('btnKeluar').classList.add('hidden');
+  initGame();
 };
 
-btnKeluar.onclick = () => {
-  window.location.href = 'index.html';
+document.getElementById('btnKeluar').onclick = () => {
+  window.location.href = 'index.html'; // Kembali ke lobby/menu
 };
+
+// Jalankan game saat skrip dimuat
+initGame();

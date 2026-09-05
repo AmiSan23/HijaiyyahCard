@@ -16,16 +16,16 @@
       <div>Room: <span id="roomCode">####</span></div>
       <div>Player:</div>
       <ul id="playerStats">
-        <li>Aaa | W: 1 L: 2</li>
-        <li>Bbb | W: 0 L: 1</li>
-        <li>Ccc | W: 2 L: 2</li>
-        <li>Ddd | W: 0 L: 2</li>
+        <li>Aaa | <span id="w-A">W: 0</span> | <span id="l-A">L: 0</span> | <span id="a-A">A: 0</span></li>
+        <li>Bbb | <span id="w-B">W: 0</span> | <span id="l-B">L: 0</span> | <span id="a-B">A: 0</span></li>
+        <li>Ccc | <span id="w-C">W: 0</span> | <span id="l-C">L: 0</span> | <span id="a-C">A: 0</span></li>
+        <li>Ddd | <span id="w-D">W: 0</span> | <span id="l-D">L: 0</span> | <span id="a-D">A: 0</span></li>
       </ul>
     </icol>
     <icol class="panel-col border-left">
-      <div>Round: <span id="roundNum">11</span></div>
+      <div>Round: <span id="roundNum">1</span></div>
       <div class="mt-10">Last Game:</div>
-      <div>Win: Aaa<br>Lose: Ccc</div>
+      <div id="lastGameInfo">Win: -<br>Aman: -<br>Lose: -</div>
     </icol>
     <icol class="panel-col border-left">
       <div>Kartu terbuang: <span id="discardCount">12</span></div>
@@ -77,21 +77,15 @@
         <grid class="row3">
           <icol class="pile pile-discard-C">
             <irow class="discard-grid" id="discardGrid">
-              <img src="img/Ft_Kho.png" class="card-img" alt="Kartu Terbuang">
             </irow>
             <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
           </icol>
 
           <irow class="openCardArea" id="openAreaD">
-            <img src="img/Ft_1.png" class="card-img">
-            <img src="img/Ft_1.png" class="card-img">
-            <img src="img/Ft_1.png" class="card-img">
-            <img src="img/Ft_1.png" class="card-img">
           </irow>
           
-          <icol class="pile pile-discard-B">
+          <icol class="pile pile-discard-D">
             <irow class="discard-grid" id="discardGrid">
-              <img src="img/Ks_Kho.png" class="card-img" alt="Kartu Terbuang">
             </irow>
             <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
           </icol>
@@ -99,10 +93,6 @@
         
         <grid class="row3">
           <irow class="openCardArea" id="openAreaC">
-            <img src="img/Sk_8.png" class="card-img">
-            <img src="img/Sk_8.png" class="card-img">
-            <img src="img/Sk_8.png" class="card-img">
-            <img src="img/Sk_8.png" class="card-img">
           </irow>
           
           <icol class="pile pile-deck" id="deckPile">
@@ -116,26 +106,33 @@
           </icol>
           
           <irow class="openCardArea" id="openAreaA">
-            <img src="img/Dm_10.png" class="card-img">
-            <img src="img/Dm_10.png" class="card-img">
-            <img src="img/Dm_10.png" class="card-img">
-            <img src="img/Dm_10.png" class="card-img">
           </irow>
         </grid>
         
         <grid class="row3">
-          <icol class="pile pile-discard-D">
+          <icol class="pile pile-discard-B">
             <irow class="discard-grid" id="discardGrid">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
+              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
               <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
             </irow>
             <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
           </icol>
           
           <irow class="openCardArea" id="openAreaB">
-            <img src="img/Ks_11.png" class="card-img">
-            <img src="img/Ks_11.png" class="card-img">
-            <img src="img/Ks_11.png" class="card-img">
-            <img src="img/Ks_11.png" class="card-img">
           </irow>
           
           <icol class="pile pile-discard-A">
@@ -170,10 +167,6 @@
       
       <icol class="seat seat-A">
         <div class="fanning-container my-cards" id="myHand">
-          <img src="img/Dm_As.png" class="card-img">
-          <img src="img/Dm_Kho.png" class="card-img">
-          <img src="img/Dm_25.png" class="card-img">
-          <img src="img/Dm_Qof.png" class="card-img">
         </div>
         <div class="seat-name active-turn" id="nameA">Aaa</div>
       </icol>
