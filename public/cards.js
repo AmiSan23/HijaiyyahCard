@@ -37,7 +37,7 @@ export const HURUF = [
   { value: 23, file: '23',    nama: 'Ta',           "ft": 'Ta' , "ks": 'Ti', "dm": 'Ta', "sk": 'Ta' },
   { value: 24, file: '24',    nama: 'Tsa',          "ft": 'Tsa' , "ks": 'Tsi', "dm": 'Ts', "sk": 'Ts' },
   { value: 25, file: '25',    nama: 'Haa',          "ft": 'Ĥaa', "ks": 'Ĥii', "dm": 'Ĥuu', "sk": 'Ĥ' },
-  { value: 26, file: 'Qof',    nama: "Qaf",         "ft": "Qof" , "ks": 'Qi', "dm": 'Qu', "sk": 'Q' },
+  { value: 25, file: 'Qof',    nama: "Qaf",         "ft": "Qof" , "ks": 'Qi', "dm": 'Qu', "sk": 'Q' },
   { value: 25, file: 'Ghain', nama: 'Ghain',        "ft": 'Gho' , "ks": 'Ghi', "dm": 'Ghu', "sk": 'Gh' },
   { value: 25, file: 'Kho',   nama: 'Kha',          "ft": 'Kho' , "ks": 'Khi', "dm": 'Khu', "sk": 'Kh' },
   { value: 26, file: 'As',   nama: "'Ain",          "ft": "Á" , "ks": 'Í', "dm": 'Ú', "sk": "'" },
