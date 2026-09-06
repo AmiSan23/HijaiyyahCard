@@ -13,7 +13,7 @@
   <!-- Panel Informasi Atas -->
   <irow class="top-panel">
     <icol class="panel-col">
-      <div>Room: <span id="roomCode">####</span></div>
+      <div>Room: <span id="roomCode"></span></div>
       <div>Player:</div>
       <ul id="playerStats">
         <li>Aaa | <span id="w-A">W: 0</span> | <span id="l-A">L: 0</span> | <span id="a-A">A: 0</span></li>
@@ -28,12 +28,12 @@
       <div id="lastGameInfo">Win: -<br>Aman: -<br>Lose: -</div>
     </icol>
     <icol class="panel-col border-left">
-      <div>Kartu terbuang: <span id="discardCount">12</span></div>
-      <div>Sisa kartu: <span id="deckCount">88</span></div>
+      <div>Kartu terbuang: <span id="discardCount"></span></div>
+      <div>Sisa kartu: <span id="deckCount"></span></div>
       <div class="mt-10">Giliran saat ini:</div>
       <div>
         <ul style="padding-left: 20px; margin: 0;">
-          <li><span id="currentTurnName">Aaa</span></li>
+          <li><span id="currentTurnName"></span></li>
         </ul>
       </div>
     </icol>
@@ -99,12 +99,12 @@
           
           <icol class="pile pile-deck" id="deckPile">
             <img src="img/back.png" class="card-img" alt="Deck">
-            <div class="card-overlay-text">Sisa<br><span id="deckSisa">88</span></div>
+            <div class="card-overlay-text">Sisa<br><span id="deckSisa"></span></div>
             <button class="action-btn btn-ambil" id="btnAmbilDeck">Ambil</button>
           </icol>
           <!-- End Game Overlay (Muncul saat selesai[cite: 4]) -->
           <icol class="end-game-center hidden" id="endGameCenter">
-            <div class="win-text">WIN<br><span id="winnerName">Aaa</span></div>
+            <div class="win-text">WIN<br><span id="winnerName"></span></div>
           </icol>
           
           <irow class="openCardArea" id="openAreaA">
@@ -114,22 +114,6 @@
         <grid class="row3">
           <icol class="pile pile-discard-B">
             <irow class="discard-grid" id="discardGrid">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Ks_Ghain.png" class="card-img" alt="Kartu Terbuang">
             </irow>
             <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
           </icol>
@@ -139,28 +123,6 @@
           
           <icol class="pile pile-discard-A">
             <irow class="discard-grid" id="discardGrid">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
-              <img src="img/Sk_Qof.png" class="card-img" alt="Kartu Terbuang">
             </irow>
             <button class="action-btn btn-ambil" id="btnAmbilDiscard">Ambil</button>
           </icol>
@@ -190,10 +152,10 @@
 
       <icol class="score-panel">
         <div class="score-title">Kartumu:</div>
-        <div class="score-detail" id="scoreCards">U' | Khu | Huu | Kh</div>
-        <div class="score-calc" id="scoreCalc">26 + 25 + 25 - 25</div>
+        <div class="score-detail" id="scoreCards"> |  |  | </div>
+        <div class="score-calc" id="scoreCalc"> +  +  + </div>
         <div class="score-title mt-10">Poinmu saat ini:</div>
-        <div class="score-total" id="scoreTotal">50</div>
+        <div class="score-total" id="scoreTotal"></div>
       </icol>
     </grid>
   </grid>
