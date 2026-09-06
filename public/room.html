@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang Tunggu - Checkmate 101</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .room-box { text-align: center; margin-bottom: 20px; background: #fff; padding: 12px; border-radius: 8px; border: 1px dashed var(--ink-light); }
+    .code-text { font-size: 2rem; font-weight: bold; letter-spacing: 0.15em; color: var(--turn-active); }
+    .player-list { list-style: none; padding: 0; margin: 0 0 20px 0; text-align: left; }
+    .player-item { padding: 10px 14px; background: #fff; margin-bottom: 8px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body class="lobby-body">
+  
+  <div class="lobby-card">
+    <h1 class="brand-title" style="font-size: 2rem;">Ruang Tunggu</h1>
+    <p class="brand-subtitle">Menunggu pemain lain bergabung...</p>
+
+    <div class="room-box">
+      <div>KODE ROOM KAMU:</div>
+      <div id="displayCode" class="code-text">----</div>
+    </div>
+
+    <div class="input-group">
+      <label>Daftar Pemain (Maksimal 4):</label>
+      <ul id="waitingList" class="player-list">
+        <!-- Diisi dinamis oleh socket -->
+      </ul>
+    </div>
+
+    <!-- Tombol Mulai Hanya Muncul untuk Host -->
+    <button id="btnMulaiGame" class="btn-main hidden">Mulai Permainan (Isi Bot)</button>
+    <p id="infoStatus" class="brand-subtitle" style="margin-top: 10px; font-style: italic;">Menunggu Host memulai...</p>
+  </div>
+
+  <script type="module" src="room.js"></script>
+</body>
+</html>

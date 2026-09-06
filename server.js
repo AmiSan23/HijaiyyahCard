@@ -213,72 +213,79 @@ function selesaikanGame(kode, winId, alasan) {
 
 // Koneksi WebSocket Socket.IO
 io.on('connection', (socket) => {
-  socket.on('join-room', ({ kode, nama, isHost }) => {
+  
+  // 1. Masuk Ruang Tunggu (Lobby Room)
+  socket.on('join-waiting-room', ({ kode, nama, isHost }) => {
     if (!rooms[kode]) {
       rooms[kode] = { hostId: socket.id, players: [], game: null, roundNumber: 0, stats: {} };
     }
     const room = rooms[kode];
-    
-    // Tolak jika game sudah jalan atau ruang penuh
-    if (room.game && room.game.status === 'bermain') return socket.emit('gagal-join', 'Game sedang berlangsung');
-    if (room.players.length >= 4) return socket.emit('gagal-join', 'Ruangan Penuh');
 
-    room.players.push({ id: socket.id, nama, isBot: false });
-    if (!room.stats[socket.id]) room.stats[socket.id] = { w: 0, l: 0, a: 0 };
-    
+    if (room.game && room.game.status === 'bermain') {
+      return socket.emit('gagal-join', 'Game di room ini sudah dimulai!');
+    }
+    if (room.players.length >= 4) {
+      return socket.emit('gagal-join', 'Room sudah penuh (4 pemain)!');
+    }
+
+    // Jika ini koneksi pertama dan mendeklarasikan host, tetapkan hostId
+    if (room.players.length === 0 || isHost) {
+      room.hostId = socket.id;
+    }
+
+    const existingPlayer = room.players.find(p => p.id === socket.id);
+    if (!existingPlayer) {
+      room.players.push({ id: socket.id, nama, isBot: false });
+      if (!room.stats[socket.id]) room.stats[socket.id] = { w: 0, l: 0, a: 0 };
+    }
+
     socket.join(kode);
     socket.data.kode = kode;
 
-    // KHUSUS MODE BOT (Room 9999): Langsung otomatis isi 3 bot dan mulai game detik ini juga!
-    if (kode === '9999' && !room.game) {
-      let botCount = 1;
-      while (room.players.length < 4) {
-        const bid = `bot_${botCount}_${kode}`;
-        room.players.push({ id: bid, nama: `Bot ${botCount}`, isBot: true });
-        room.stats[bid] = { w: 0, l: 0, a: 0 };
-        botCount++;
-      }
-      mulaiRondeBaru(kode);
-      kirimGameState(kode);
-      cekGiliranBot(kode);
-      return;
-    }
+    const hostObj = room.players.find(p => p.id === room.hostId);
 
-    // KHUSUS ROOM ONLINE: Jika pemain sudah genap 4 orang, otomatis mulai game
-    if (room.players.length === 4 && !room.game) {
-      mulaiRondeBaru(kode);
-      kirimGameState(kode);
-      cekGiliranBot(kode);
-      return;
-    }
-
-    // Jika belum 4 orang, masuk ke ruang tunggu
-    io.to(kode).emit('waiting-room', {
-      players: room.players,
-      isHost: room.hostId === socket.id
+    // Broadcast daftar tunggu ke semua orang di room tersebut
+    io.to(kode).emit('update-waiting-list', {
+      players: room.players.map(p => ({ nama: p.nama, isHost: p.id === room.hostId })),
+      hostName: hostObj ? hostObj.nama : 'Host'
     });
   });
 
-  // Fitur Host: Mulai Game & Otomatis Tambah Bot (Jika kurang dari 4 orang)
- socket.on('buang-kartu', (index) => {
-    const room = rooms[socket.data.kode];
-    if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
-    
-    const hand = room.game.hands[socket.id];
-    room.game.discards[socket.id].push(hand.splice(index, 1)[0]);
+  // 2. Host Menekan Tombol Mulai di Ruang Tunggu
+  socket.on('host-mulai-game', (kode) => {
+    const room = rooms[kode];
+    if (!room || room.hostId !== socket.id) return;
 
-    if (cekCheckmate(hand)) {
-      selesaikanGame(socket.data.kode, socket.id, 'checkmate');
-    } else if (room.game.deck.length === 0) {
-      handleDeckHabis(socket.data.kode);
-    } else {
-      room.game.turnIndex = (room.game.turnIndex + 1) % 4;
-      kirimGameState(socket.data.kode);
-      cekGiliranBot(socket.data.kode);
+    // Isi sisa kursi kosong dengan Bot otomatis
+    let botCount = 1;
+    while (room.players.length < 4) {
+      const bid = `bot_${botCount}_${kode}`;
+      room.players.push({ id: bid, nama: `Bot ${botCount}`, isBot: true });
+      room.stats[bid] = { w: 0, l: 0, a: 0 };
+      botCount++;
     }
+
+    // Mulai ronde pertama
+    mulaiRondeBaru(kode);
+
+    // Perintahkan semua client di room untuk pindah ke papan game
+    io.to(kode).emit('mulai-masuk-game');
   });
 
-}); // <-- Penutup io.on('connection')
+  // 3. Masuk ke Papan Game (checkmate.html memanggil ini lewat join-room)
+  socket.on('join-room', ({ kode, nama }) => {
+    const room = rooms[kode];
+    if (!room || !room.game) return;
+
+    socket.join(kode);
+    socket.data.kode = kode;
+
+    // Kirim state awal ke pemain yang baru masuk papan game
+    kirimGameState(kode);
+    cekGiliranBot(kode);
+  });
+
+  // ... (lanjutan handler ambil-deck, ambil-discard, buang-kartu tetap sama seperti sebelumnya)
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server jalan di port ${PORT}`));

@@ -17,20 +17,18 @@ function generateRoomCode() {
 
 btnMulai.addEventListener('click', () => {
   const nama = inputNama.value.trim();
-  if (!nama) {
-    return showError('Nama kamu wajib diisi terlebih dahulu!');
-  }
+  if (!nama) return showError('Nama kamu wajib diisi!');
 
   localStorage.setItem('playerName', nama);
   localStorage.setItem('gameMode', gameMode.value);
-  localStorage.setItem('lawanMode', lawanMode.value);
   localStorage.setItem('isHost', 'true'); 
 
   if (lawanMode.value === 'bot') {
     window.location.href = `checkmate.html?room=9999`;
   } else {
     const newRoomCode = generateRoomCode();
-    window.location.href = `checkmate.html?room=${newRoomCode}`;
+    // Host masuk ke ruang tunggu dulu
+    window.location.href = `room.html?room=${newRoomCode}`;
   }
 });
 
@@ -38,17 +36,13 @@ btnGabung.addEventListener('click', () => {
   const nama = inputNama.value.trim();
   const kode = inputKode.value.trim();
 
-  if (!nama) {
-    return showError('Nama kamu wajib diisi terlebih dahulu!');
-  }
-  if (kode.length !== 4 || isNaN(kode)) {
-    return showError('Kode room harus 4 digit angka!');
-  }
+  if (!nama) return showError('Nama kamu wajib diisi!');
+  if (kode.length !== 4 || isNaN(kode)) return showError('Kode room harus 4 digit angka!');
 
   localStorage.setItem('playerName', nama);
   localStorage.setItem('gameMode', gameMode.value);
-  localStorage.setItem('lawanMode', 'online');
   localStorage.setItem('isHost', 'false'); 
   
-  window.location.href = `checkmate.html?room=${kode}`;
+  // Masuk ke ruang tunggu berdasar kode
+  window.location.href = `room.html?room=${kode}`;
 });
