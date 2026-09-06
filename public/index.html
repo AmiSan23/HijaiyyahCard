@@ -6,29 +6,50 @@
   <title>Lobby - Kartu Hijaiyyah</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="screen">
+<body class="lobby-body">
   
-  <icol class="lobby-card">
+  <div class="lobby-card">
     <h1 class="brand-title">Kartu Hijaiyyah</h1>
-    <p class="brand-subtitle">Pilih Mode Permainan</p>
+    <p class="brand-subtitle">Checkmate 101 Multiplayer & Bot</p>
 
-    <select id="gameMode" class="input-field">
-      <option value="checkmate">Checkmate 101</option>
-    </select>
+    <!-- Pilihan Mode Game -->
+    <div class="input-group">
+      <label for="gameMode">Mode Permainan</label>
+      <select id="gameMode" class="input-element">
+        <option value="checkmate">Checkmate 101</option>
+      </select>
+    </div>
 
-    <input type="text" id="inputNama" class="input-field" placeholder="Nama Kamu (Maks 10 huruf)" maxlength="10">
+    <!-- Pilihan Lawan (Bot vs Online) -->
+    <div class="input-group">
+      <label for="lawanMode">Lawan Main</label>
+      <select id="lawanMode" class="input-element">
+        <option value="bot">Lawan 3 Bot (Offline / Test)</option>
+        <option value="online">Multiplayer Online (Segera)</option>
+      </select>
+    </div>
 
-    <irow class="btn-group mb-15">
-      <button id="btnBuat" class="btn-primary btn-full">Buat Room</button>
-    </irow>
+    <!-- Input Nama -->
+    <div class="input-group">
+      <label for="inputNama">Nama Kamu</label>
+      <input type="text" id="inputNama" class="input-element" placeholder="Maks 10 huruf" maxlength="10">
+    </div>
 
-    <irow class="btn-group">
-      <input type="text" id="inputKode" class="input-field code-input" placeholder="Kode 4 Digit" maxlength="4">
-      <button id="btnGabung" class="btn-primary btn-gabung">Gabung</button>
-    </irow>
+    <!-- Tombol Buat Room / Main vs Bot -->
+    <div class="input-group">
+      <button id="btnMulai" class="btn-main">Mulai Game (Buat Room)</button>
+    </div>
 
-    <p id="errorMsg" class="error hidden">Error message</p>
-  </icol>
+    <div class="divider"><span>ATAU GABUNG ROOM</span></div>
+
+    <!-- Input Kode & Gabung -->
+    <div class="join-group">
+      <input type="text" id="inputKode" class="input-element code-input" placeholder="Kode 4 Digit" maxlength="4">
+      <button id="btnGabung" class="btn-join">Gabung</button>
+    </div>
+
+    <p id="errorMsg" class="error-msg hidden">Pesan error di sini</p>
+  </div>
 
   <script type="module" src="lobby.js"></script>
 </body>

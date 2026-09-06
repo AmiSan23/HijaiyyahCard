@@ -1,14 +1,14 @@
 {
   "name": "kartu-hijaiyyah",
-  "version": "2.0.0",
-  "description": "Game kartu edukasi hijaiyyah - multiplayer via room code (Socket.io + EJS)",
+  "version": "1.0.0",
+  "description": "Multiplayer Card Game Hijaiyyah",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "ejs": "^3.1.10",
-    "express": "^4.19.2",
-    "socket.io": "^4.7.5"
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4"
   }
 }
