@@ -260,25 +260,25 @@ io.on('connection', (socket) => {
   });
 
   // Fitur Host: Mulai Game & Otomatis Tambah Bot (Jika kurang dari 4 orang)
-  socket.on('mulai-main', () => {
+ socket.on('buang-kartu', (index) => {
     const room = rooms[socket.data.kode];
-    if (!room || room.hostId !== socket.id) return;
-    if (room.game && room.game.status === 'bermain') return;
+    if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
+    
+    const hand = room.game.hands[socket.id];
+    room.game.discards[socket.id].push(hand.splice(index, 1)[0]);
 
-    let botCount = 1;
-    while (room.players.length < 4) {
-      const bid = `bot_${botCount}_${socket.data.kode}`;
-      room.players.push({ id: bid, nama: `Bot ${botCount}`, isBot: true });
-      room.stats[bid] = { w: 0, l: 0, a: 0 };
-      botCount++;
+    if (cekCheckmate(hand)) {
+      selesaikanGame(socket.data.kode, socket.id, 'checkmate');
+    } else if (room.game.deck.length === 0) {
+      handleDeckHabis(socket.data.kode);
+    } else {
+      room.game.turnIndex = (room.game.turnIndex + 1) % 4;
+      kirimGameState(socket.data.kode);
+      cekGiliranBot(socket.data.kode);
     }
-
-    mulaiRondeBaru(socket.data.kode);
-    kirimGameState(socket.data.kode);
-    cekGiliranBot(socket.data.kode);
   });
 
-  // ... (lanjutan handler ambil-deck, ambil-discard, buang-kartu tetap sama)
+}); // <-- Penutup io.on('connection')
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server jalan di port ${PORT}`));
