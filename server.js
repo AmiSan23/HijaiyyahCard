@@ -273,12 +273,49 @@ io.on('connection', (socket) => {
   });
 
   // 3. Masuk ke Papan Game (checkmate.html memanggil ini lewat join-room)
+  // 3. Masuk ke Papan Game (checkmate.html memanggil ini lewat join-room)
   socket.on('join-room', ({ kode, nama }) => {
     const room = rooms[kode];
     if (!room || !room.game) return;
 
     socket.join(kode);
     socket.data.kode = kode;
+
+    // Sinkronisasi ulang Socket ID karena perpindahan halaman (room.html -> checkmate.html)
+    const player = room.players.find(p => p.nama === nama && !p.isBot);
+    if (player) {
+      const oldId = player.id;
+      const newId = socket.id;
+
+      if (oldId !== newId) {
+        player.id = newId;
+
+        // Pindahkan data statistik ke ID socket baru
+        if (room.stats[oldId]) {
+          room.stats[newId] = room.stats[oldId];
+          delete room.stats[oldId];
+        }
+        // Pindahkan kartu tangan ke ID socket baru
+        if (room.game.hands[oldId]) {
+          room.game.hands[newId] = room.game.hands[oldId];
+          delete room.game.hands[oldId];
+        }
+        // Pindahkan tumpukan buangan ke ID socket baru
+        if (room.game.discards[oldId]) {
+          room.game.discards[newId] = room.game.discards[oldId];
+          delete room.game.discards[oldId];
+        }
+        // Perbarui urutan giliran (turnOrder)
+        const idx = room.game.turnOrder.indexOf(oldId);
+        if (idx !== -1) {
+          room.game.turnOrder[idx] = newId;
+        }
+        // Perbarui Host ID jika pemain ini adalah host
+        if (room.hostId === oldId) {
+          room.hostId = newId;
+        }
+      }
+    }
 
     // Kirim state awal ke pemain yang baru masuk papan game
     kirimGameState(kode);

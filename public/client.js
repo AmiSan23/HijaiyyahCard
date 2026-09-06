@@ -14,9 +14,10 @@ let kartuTerpilihId = null;
 let modeBuang = false;
 
 // 1. Hubungkan ke Server
+// 1. Hubungkan ke Server
 socket.on('connect', () => {
   myId = socket.id;
-  socket.emit('join-room', { kode: roomCode, nama: myName, isHost });
+  socket.emit('join-room', { kode: roomCode, nama: myName });
 });
 
 socket.on('gagal-join', (msg) => {
