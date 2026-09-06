@@ -357,6 +357,18 @@ socket.on('ambil-deck', () => {
     }
   });
 
+  // 4. Host Klik Tombol "Main Lagi" Setelah Ronde Selesai
+  socket.on('mulai-main', () => {
+    const kode = socket.data.kode;
+    const room = rooms[kode];
+    if (!room || room.hostId !== socket.id) return;
+
+    // Mulai ronde baru dan kirim state segar ke semua pemain
+    mulaiRondeBaru(kode);
+    kirimGameState(kode);
+    cekGiliranBot(kode);
+  });
+
 }); // <-- 1. Menutup handler socket.on('buang-kartu') atau fungsi di dalamnya
 
 const PORT = process.env.PORT || 3000;
