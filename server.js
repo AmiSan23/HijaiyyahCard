@@ -285,7 +285,25 @@ io.on('connection', (socket) => {
     cekGiliranBot(kode);
   });
 
-  // ... (lanjutan handler ambil-deck, ambil-discard, buang-kartu tetap sama seperti sebelumnya)
+socket.on('buang-kartu', (index) => {
+    const room = rooms[socket.data.kode];
+    if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
+    
+    const hand = room.game.hands[socket.id];
+    room.game.discards[socket.id].push(hand.splice(index, 1)[0]);
+
+    if (cekCheckmate(hand)) {
+      selesaikanGame(socket.data.kode, socket.id, 'checkmate');
+    } else if (room.game.deck.length === 0) {
+      handleDeckHabis(socket.data.kode);
+    } else {
+      room.game.turnIndex = (room.game.turnIndex + 1) % 4;
+      kirimGameState(socket.data.kode);
+      cekGiliranBot(socket.data.kode);
+    }
+  });
+
+}); // <-- 1. Menutup handler socket.on('buang-kartu') atau fungsi di dalamnya
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server jalan di port ${PORT}`));
