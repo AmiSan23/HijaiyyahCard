@@ -149,10 +149,19 @@ function renderMeja() {
   const deckPile = document.getElementById('deckPile');
   const bolehAmbilDeck = modeAmbil && st.deckCount > 0;
   
-  if (btnAmbilDeck && deckPile) {
-    btnAmbilDeck.style.display = '';
+  if (deckPile) {
     deckPile.classList.toggle('active-draw', bolehAmbilDeck);
-    btnAmbilDeck.onclick = bolehAmbilDeck ? () => socket.emit('ambil-deck') : null;
+    // Seluruh kotak deck bisa langsung diklik saat gilirannya mengambil kartu
+    deckPile.style.cursor = bolehAmbilDeck ? 'pointer' : 'default';
+    deckPile.onclick = bolehAmbilDeck ? () => socket.emit('ambil-deck') : null;
+  }
+  
+  if (btnAmbilDeck) {
+    btnAmbilDeck.style.display = bolehAmbilDeck ? 'block' : 'none';
+    btnAmbilDeck.onclick = bolehAmbilDeck ? (e) => {
+      e.stopPropagation();
+      socket.emit('ambil-deck');
+    } : null;
   }
 
   if (st.myHand) {
