@@ -56,6 +56,8 @@ socket.on('game-state', (state) => {
 
 function renderMeja() {
   const st = serverState;
+  if (!st || !st.turnOrder) return;
+
   const isMyTurn = st.turnId === myId;
   modeBuang = isMyTurn && st.myHand.length === 5;
   const modeAmbil = isMyTurn && st.myHand.length === 4;
@@ -71,37 +73,44 @@ function renderMeja() {
 
   // Tentukan Posisi Meja berdasarkan urutan turnOrder dari Server
   const myIndex = st.turnOrder.indexOf(myId);
+  // Jika kamu belum masuk turnOrder (misal penonton/belum sinkron), default index 0
+  const validIndex = myIndex !== -1 ? myIndex : 0;
+
   const posisi = {
-    'A': myId, // Bawah
-    'B': st.turnOrder[(myIndex + 1) % 4], // Kanan
-    'C': st.turnOrder[(myIndex + 2) % 4], // Atas
-    'D': st.turnOrder[(myIndex + 3) % 4]  // Kiri
+    'A': st.turnOrder[validIndex],                          // Bawah (Kamu)
+    'B': st.turnOrder[(validIndex + 1) % 4],                // Kanan
+    'C': st.turnOrder[(validIndex + 2) % 4],                // Atas
+    'D': st.turnOrder[(validIndex + 3) % 4]                 // Kiri
   };
 
   let statsHtml = '';
   let totalDiscard = 0;
 
-  // Render Setiap Posisi
+  // Render Setiap Posisi Berdasarkan Server Data
   Object.keys(posisi).forEach(pos => {
     const pid = posisi[pos];
     const pData = st.players[pid];
-    if(!pData) return;
+    if (!pData) return;
 
-    // Statistik Top Panel
+    // Statistik Top Panel (Menampilkan nama asli pemain dari server)
     totalDiscard += pData.discards.length;
     statsHtml += `<li>${pData.name} | <span id="w-${pos}">W: ${pData.stats.w}</span> | <span id="l-${pos}">L: ${pData.stats.l}</span> | <span id="a-${pos}">A: ${pData.stats.a}</span></li>`;
 
-    // Indikator Giliran Nama
+    // Indikator Giliran Nama di Kursi Meja
     const elName = document.getElementById(`name${pos}`);
     if (elName) {
       elName.textContent = pData.name;
       elName.className = `seat-name ${st.turnId === pid ? 'active-turn' : 'inactive'}`;
-      if (st.turnId === pid) document.getElementById('currentTurnName').textContent = pData.name;
+      if (st.turnId === pid) {
+        const elTurnName = document.getElementById('currentTurnName');
+        if (elTurnName) elTurnName.textContent = pData.name;
+      }
     }
 
     // Render Tangan Lawan Belakang (B, C, D)
     if (pos !== 'A') {
-      const handContainer = document.getElementById(`hand${pos === 'B' ? 'Bbb' : pos === 'C' ? 'Ccc' : 'Ddd'}`);
+      const targetId = pos === 'B' ? 'handBbb' : pos === 'C' ? 'handCcc' : 'handDdd';
+      const handContainer = document.getElementById(targetId);
       if (handContainer) {
         handContainer.innerHTML = Array(pData.handCount).fill(`<img src="img/back.png" class="card-img">`).join('');
       }
@@ -128,8 +137,11 @@ function renderMeja() {
     }
   });
 
-  document.getElementById('playerStats').innerHTML = statsHtml;
-  document.getElementById('discardCount').textContent = totalDiscard;
+  const elPlayerStats = document.getElementById('playerStats');
+  if (elPlayerStats) elPlayerStats.innerHTML = statsHtml;
+  
+  const elDiscardCount = document.getElementById('discardCount');
+  if (elDiscardCount) elDiscardCount.textContent = totalDiscard;
 
   // Deck Tengah
   const btnAmbilDeck = document.getElementById('btnAmbilDeck');
@@ -142,7 +154,9 @@ function renderMeja() {
     btnAmbilDeck.onclick = bolehAmbilDeck ? () => socket.emit('ambil-deck') : null;
   }
 
-  renderTanganSaya(st.myHand);
+  if (st.myHand) {
+    renderTanganSaya(st.myHand);
+  }
 }
 
 function renderTanganSaya(hand) {
