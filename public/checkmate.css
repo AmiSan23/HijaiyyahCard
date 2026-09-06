@@ -226,7 +226,9 @@ ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
   border-width: 4px !important;
 }
 
-.pile.active-draw { cursor: pointer; }
+.pile.active-draw, .pile-deck.active-draw {
+  cursor: pointer;
+}
 
 /* Tombol Aksi */
 .action-btn {

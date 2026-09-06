@@ -63,6 +63,8 @@ function renderMeja() {
   modeBuang = isMyTurn && st.myHand.length === 5;
   const modeAmbil = isMyTurn && st.myHand.length === 4;
 
+  // Render informasi Room Code dari server
+  document.getElementById('roomCode').textContent = st.roomCode; // <-- Tambahkan baris ini
   document.getElementById('roundNum').textContent = st.round;
   document.getElementById('deckCount').textContent = st.deckCount;
   document.getElementById('deckSisa').textContent = st.deckCount;

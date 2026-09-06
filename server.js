@@ -322,21 +322,38 @@ io.on('connection', (socket) => {
     cekGiliranBot(kode);
   });
 
-socket.on('buang-kartu', (index) => {
-    const room = rooms[socket.data.kode];
+socket.on('ambil-deck', () => {
+    const kode = socket.data.kode; // <-- Tangkap kode room dari socket
+    const room = rooms[kode];
+    if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
+    room.game.hands[socket.id].push(room.game.deck.pop());
+    kirimGameState(kode);
+  });
+
+  socket.on('ambil-discard', (targetId) => {
+    const kode = socket.data.kode; // <-- Tangkap kode room dari socket
+    const room = rooms[kode];
+    if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
+    room.game.hands[socket.id].push(room.game.discards[targetId].pop());
+    kirimGameState(kode);
+  });
+
+  socket.on('buang-kartu', (index) => {
+    const kode = socket.data.kode; // <-- Tangkap kode room dari socket
+    const room = rooms[kode];
     if (!room || room.game.turnOrder[room.game.turnIndex] !== socket.id) return;
     
     const hand = room.game.hands[socket.id];
     room.game.discards[socket.id].push(hand.splice(index, 1)[0]);
 
     if (cekCheckmate(hand)) {
-      selesaikanGame(socket.data.kode, socket.id, 'checkmate');
+      selesaikanGame(kode, socket.id, 'checkmate');
     } else if (room.game.deck.length === 0) {
-      handleDeckHabis(socket.data.kode);
+      handleDeckHabis(kode);
     } else {
       room.game.turnIndex = (room.game.turnIndex + 1) % 4;
-      kirimGameState(socket.data.kode);
-      cekGiliranBot(socket.data.kode);
+      kirimGameState(kode);
+      cekGiliranBot(kode);
     }
   });
 
