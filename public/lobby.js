@@ -11,32 +11,46 @@ function showError(msg) {
   errorMsg.classList.remove('hidden');
 }
 
+// Fungsi pembuat kode acak 4 digit
+function generateRoomCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString(); 
+}
+
+// Aksi: Buat Room Baru (Host)
 btnMulai.addEventListener('click', () => {
-  const nama = inputNama.value.trim() || 'Aaa';
+  const nama = inputNama.value.trim() || 'Pemain';
   localStorage.setItem('playerName', nama);
   localStorage.setItem('gameMode', gameMode.value);
   localStorage.setItem('lawanMode', lawanMode.value);
+  
+  // Pembuat room adalah Host
+  localStorage.setItem('isHost', 'true'); 
 
   if (lawanMode.value === 'bot') {
-    // Langsung masuk ke game vs 3 bot yang sudah kita buat
+    // Mode Bot: Selalu gunakan room 9999
     window.location.href = `checkmate.html?room=9999`;
   } else {
-    showError('Fitur Multiplayer Online segera hadir!');
+    // Mode Online: Buat kode 4 digit baru
+    const newRoomCode = generateRoomCode();
+    window.location.href = `checkmate.html?room=${newRoomCode}`;
   }
 });
 
+// Aksi: Gabung Room Teman (Joiner)
 btnGabung.addEventListener('click', () => {
-  const nama = inputNama.value.trim() || 'Aaa';
+  const nama = inputNama.value.trim() || 'Pemain';
   const kode = inputKode.value.trim();
 
-  if (kode.length !== 4) {
-    return showError('Kode room harus 4 digit!');
+  if (kode.length !== 4 || isNaN(kode)) {
+    return showError('Kode room harus 4 digit angka!');
   }
 
   localStorage.setItem('playerName', nama);
   localStorage.setItem('gameMode', gameMode.value);
   localStorage.setItem('lawanMode', 'online');
   
-  // Nanti diarahkan ke room online
-  showError('Koneksi online belum diaktifkan.');
+  // Yang bergabung bukan Host
+  localStorage.setItem('isHost', 'false'); 
+  
+  window.location.href = `checkmate.html?room=${kode}`;
 });
