@@ -72,7 +72,7 @@ function kirimGameState(kode) {
   });
 }
 
-// AI Bot Server-Side
+// AI Bot Server-Side (Pintar)
 function cekGiliranBot(kode) {
   const room = rooms[kode];
   if (!room || !room.game || room.game.status !== 'bermain') return;
@@ -81,15 +81,43 @@ function cekGiliranBot(kode) {
   const player = room.players.find(p => p.id === turnId);
 
   if (player && player.isBot) {
+    // FASE 1: BERPIKIR UNTUK MENGAMBIL KARTU
     setTimeout(() => {
       if (!rooms[kode] || rooms[kode].game.status !== 'bermain') return;
 
+      const currentHand = room.game.hands[turnId];
       const prevIdx = (room.game.turnIndex - 1 + 4) % 4;
       const prevId = room.game.turnOrder[prevIdx];
       const prevDiscards = room.game.discards[prevId];
+      
+      let ambilDariDiscard = false;
 
-      // Bot Prioritas: Ambil buangan lawan kiri (50% chance jika ada), sisa deck
-      if (prevDiscards.length > 0 && Math.random() > 0.5) {
+      // 1a. Analisis Mayoritas Suit di Tangan
+      if (prevDiscards.length > 0) {
+        const topDiscard = prevDiscards[prevDiscards.length - 1];
+        const poinPerSuit = {};
+        
+        currentHand.forEach(k => {
+          poinPerSuit[k.suit] = (poinPerSuit[k.suit] || 0) + k.value;
+        });
+        
+        let mainSuit = null;
+        let maxVal = -999;
+        for (let s in poinPerSuit) {
+          if (poinPerSuit[s] > maxVal) {
+            maxVal = poinPerSuit[s];
+            mainSuit = s;
+          }
+        }
+
+        // Jika kartu buangan lawan sesuai dengan suit mayoritas bot, AMBIL!
+        if (topDiscard.suit === mainSuit) {
+          ambilDariDiscard = true;
+        }
+      }
+
+      // 1b. Eksekusi Pengambilan
+      if (ambilDariDiscard) {
         room.game.hands[turnId].push(prevDiscards.pop());
       } else if (room.game.deck.length > 0) {
         room.game.hands[turnId].push(room.game.deck.pop());
@@ -99,15 +127,37 @@ function cekGiliranBot(kode) {
 
       kirimGameState(kode);
 
-      // Bot Buang Kartu
+      // FASE 2: BERPIKIR UNTUK MEMBUANG KARTU (SIMULASI SKOR TERBAIK)
       setTimeout(() => {
         if (!rooms[kode] || rooms[kode].game.status !== 'bermain') return;
 
         const hand = room.game.hands[turnId];
-        const dropIdx = Math.floor(Math.random() * hand.length);
-        room.game.discards[turnId].push(hand.splice(dropIdx, 1)[0]);
+        let bestScore = -9999;
+        let bestDropIdx = 0;
+        let isCheckmate = false;
 
-        if (cekCheckmate(hand)) {
+        // Simulasi buang 1 kartu, hitung skor dari sisa 4 kartu
+        for (let i = 0; i < hand.length; i++) {
+          const simHand = [...hand];
+          simHand.splice(i, 1); // Coba buang kartu indeks ke-i
+          
+          if (cekCheckmate(simHand)) {
+            bestDropIdx = i;
+            isCheckmate = true;
+            break; // Validasi Checkmate mutlak jadi prioritas
+          }
+
+          const skorSim = kalkulasiSkorDetail(simHand).total;
+          if (skorSim > bestScore) {
+            bestScore = skorSim;
+            bestDropIdx = i;
+          }
+        }
+
+        // Eksekusi Pembuangan Terbaik
+        room.game.discards[turnId].push(hand.splice(bestDropIdx, 1)[0]);
+
+        if (isCheckmate) {
           selesaikanGame(kode, turnId, 'checkmate');
         } else if (room.game.deck.length === 0) {
           handleDeckHabis(kode);
@@ -116,8 +166,8 @@ function cekGiliranBot(kode) {
           kirimGameState(kode);
           cekGiliranBot(kode);
         }
-      }, 1000);
-    }, 1500);
+      }, 1000); // Jeda berpikir saat membuang
+    }, 1500); // Jeda berpikir saat mengambil
   }
 }
 
