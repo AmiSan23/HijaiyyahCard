@@ -26,10 +26,19 @@ function mulaiRondeBaru(kode) {
     discards[p.id] = [];
   });
 
+  let urutanPemain = room.players.map(p => p.id);
+
+  // Jika ada pemenang dari ronde sebelumnya, putar urutan agar dia di urutan pertama
+  if (room.lastWinnerId && urutanPemain.includes(room.lastWinnerId)) {
+    const winIdx = urutanPemain.indexOf(room.lastWinnerId);
+    // Potong array dan sambung ulang: [Pemenang, Pemain Selanjutnya, ..., Pemain Sebelumnya]
+    urutanPemain = [...urutanPemain.slice(winIdx), ...urutanPemain.slice(0, winIdx)];
+  }
+
   room.roundNumber = (room.roundNumber || 0) + 1;
   room.game = {
     deck, hands, discards,
-    turnOrder: room.players.map(p => p.id),
+    turnOrder: urutanPemain,
     turnIndex: 0,
     status: 'bermain'
   };
@@ -185,6 +194,7 @@ function handleDeckHabis(kode) {
 function selesaikanGame(kode, winId, alasan) {
   const room = rooms[kode];
   room.game.status = 'ended';
+  room.lastWinnerId = winId;
 
   const list = room.players.map(p => ({
     id: p.id,

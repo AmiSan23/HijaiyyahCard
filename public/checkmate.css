@@ -23,7 +23,9 @@
 
 body {
   margin: 0;
-  width: fit-content;
+  width: 100%; /* Ganti dari fit-content menjadi 100% */
+  min-height: 100vh; /* Pastikan tinggi menutupi layar */
+  overflow-x: hidden; /* Mencegah layar tergeser/stretching ke samping */
   font-family: sans-serif;
   background-color: var(--cream);
   color: #111;
