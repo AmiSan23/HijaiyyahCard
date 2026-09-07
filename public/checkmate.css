@@ -227,6 +227,29 @@ ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
   width: 60px; /* Lebar kartu buangan terakhir lebih besar */
 }
 
+/* 1. Kumpulan kartu lama yang menumpuk di atas (kecil/rapat) */
+.discard-grid .card-img:not(:last-child) {
+  width: 40px; /* Ukuran lebih kecil untuk riwayat */
+  height: auto;
+  opacity: 0.6;
+  margin-bottom: -25px; /* Efek menumpuk rapat ke atas */
+  transition: transform 0.2s;
+}
+
+/* Efek sedikit melebar saat di-hover riwayatnya */
+.discard-grid .card-img:not(:last-child):hover {
+  opacity: 0.9;
+  z-index: 10;
+}
+
+/* 2. Kartu buangan TERBARU (last-child) di baris bawah dengan ukuran penuh dan jelas */
+.discard-grid .card-img:last-child {
+  width: 65px; /* Ukuran normal/besar agar sangat jelas dibaca */
+  height: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  z-index: 20;
+  margin-top: 5px; /* Berada di baris bawah tersendiri */
+}
 .pile.active-draw, .pile-deck.active-draw {
   cursor: pointer;
 }
