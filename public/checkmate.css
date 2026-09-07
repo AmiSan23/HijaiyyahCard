@@ -252,6 +252,7 @@ ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
   cursor: pointer;
 }
 
+
 /* Tombol Aksi */
 .action-btn {
   font-size: 1.2rem;
@@ -267,7 +268,10 @@ ul { list-style: none; padding-left: 0; margin: 5px 0 0; }
 .btn-buang { background: var(--btn-red); color: white; }
 
 /* Munculkan tombol saat kondisi terpenuhi[cite: 4] */
-.pile.active-draw:hover .btn-ambil { display: block; }
+.pile.active-draw:hover .btn-ambil {
+  display: block;
+  position: absolute;
+}
 /* MENJADI SEPERTI INI */
 .card-wrap.selected .btn-buang {
   display: block;
