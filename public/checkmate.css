@@ -23,7 +23,7 @@
 
 body {
   margin: 0;
-  width: 100vw;
+  width: fit-content;
   font-family: sans-serif;
   background-color: var(--cream);
   color: #111;
